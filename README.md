@@ -69,3 +69,40 @@ $ npm install
     ```bash
     $ npm run dev
     ```
+   
+
+## Sistema de Datos
+***
+
+Ahora vamos a configurar nuestro sistema de datos.
+
+1. Vamos a iniciar nuestra configuración comentando las lineas de configuración de BBDD del archivo .env:
+   ```dotenv
+   ###> doctrine/doctrine-bundle ###
+   # Format described at https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/configuration.html#connecting-using-a-url
+   # IMPORTANT: You MUST configure your server version, either here or in config/packages/doctrine.yaml
+   #
+   # DATABASE_URL="sqlite:///%kernel.project_dir%/var/data.db"
+   # DATABASE_URL="mysql://app:!ChangeMe!@127.0.0.1:3306/app?serverVersion=8&charset=utf8mb4"
+   # DATABASE_URL="postgresql://app:!ChangeMe!@127.0.0.1:5432/app?serverVersion=15&charset=utf8"
+   ###< doctrine/doctrine-bundle ###
+   ```
+2.  Generamos nuestro archivo de variables de entorno, para eso, creamos el archivo ***.env.local***
+
+3. Agregamos la línea con la configuración de conexión a la BBDD y colocamos nuestras credenciales y el nombre de la BBDD
+
+   ```dotenv
+   DATABASE_URL="mysql://dbUserName:dbUserPassword@127.0.0.1:3306/dbName?serverVersion=8&charset=utf8mb4"
+   ```
+
+4. Generar la base de datos en nuestro DBMS
+
+   ```bash
+   $ php bin/console doctrine:database:create   
+   ```
+   Deberemos recibir un mesnaje como este:
+   ```bash
+   Created database `dbName` for connection named default
+   ```
+
+Con eso, nuestro sistema queda configurado para conectarse a la BBDD y tenemos generada la misma.
