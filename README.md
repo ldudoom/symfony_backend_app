@@ -450,11 +450,15 @@ $ php bin/console d:mi:mi
 
    
 > **NOTA:** Para saber el estado de las migraciones podemos ejecutar el comando:
- 
-   ```shell
-   $ php bin/console doctrine:migrations:status
-   
-   # O abreviado 
-   
-   $ php bin/console d:mi:sta
-   ```
+>   ```shell
+>   $ php bin/console doctrine:migrations:status
+>   
+>   # O abreviado 
+>   
+>   $ php bin/console d:mi:sta
+>   ```
+
+> Para deshacer la última migración, _**ojo** no traten de modificar migraciones anterioes, y asegurarse de que la bbdd esté vacía_
+>   ```shell
+>   $ php bin/console doctrine:migration:execute `DoctrineMigrations\Version...` --down
+>   ```
