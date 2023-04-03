@@ -431,4 +431,30 @@ Ahora vamos a generar las relaciones que existen entre las tarblas y entidades d
    
     Next: When you're ready, create a migration with php bin/console make:migration
    ```
+
+3. Generamos las migraciones con los cambios que hemos generado
+
+```shell
+$ php bin/console make:migration
+```
+
+4. Y ahora ejecutamos esta migración para que esos cambios queden reflejados en nuestra BBDD
+
+```shell
+$ php bin/console doctrine:migrations:migrate
+
+# Abreviado
+
+$ php bin/console d:mi:mi
+```
+
    
+> **NOTA:** Para saber el estado de las migraciones podemos ejecutar el comando:
+ 
+   ```shell
+   $ php bin/console doctrine:migrations:status
+   
+   # O abreviado 
+   
+   $ php bin/console d:mi:sta
+   ```
