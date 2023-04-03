@@ -358,3 +358,77 @@ Ahora vamos a generar las relaciones que existen entre las tarblas y entidades d
 
    ```
    
+2. Ahora vamos a generar la relación entre Post y Comment
+
+   ```shell
+   $ php bin/console make:entity
+   
+    Class name of the entity to create or update (e.g. AgreeableGnome):
+    > Post
+   Post
+   
+    Your entity already exists! So let's add some new fields!
+   
+    New property name (press <return> to stop adding fields):
+    > comments
+   
+    Field type (enter ? to see all types) [string]:
+    > relation
+   relation
+   
+    What class should this entity be related to?:
+    > Comment
+   Comment
+   
+   What type of relationship is this?
+    ------------ -------------------------------------------------------------------- 
+     Type         Description                                                         
+    ------------ -------------------------------------------------------------------- 
+     ManyToOne    Each Post relates to (has) one Comment.                             
+                  Each Comment can relate to (can have) many Post objects.            
+                                                                                      
+     OneToMany    Each Post can relate to (can have) many Comment objects.            
+                  Each Comment relates to (has) one Post.                             
+                                                                                      
+     ManyToMany   Each Post can relate to (can have) many Comment objects.            
+                  Each Comment can also relate to (can also have) many Post objects.  
+                                                                                      
+     OneToOne     Each Post relates to (has) exactly one Comment.                     
+                  Each Comment also relates to (has) exactly one Post.                
+    ------------ -------------------------------------------------------------------- 
+   
+    Relation type? [ManyToOne, OneToMany, ManyToMany, OneToOne]:
+    > OneToMany
+   OneToMany
+   
+    A new property will also be added to the Comment class so that you can access and set the related Post object from it.
+   
+    New field name inside Comment [post]:
+    >
+   
+    Is the Comment.post property allowed to be null (nullable)? (yes/no) [yes]:
+    > no
+   
+    Do you want to activate orphanRemoval on your relationship?
+    A Comment is "orphaned" when it is removed from its related Post.
+    e.g. $post->removeComment($comment)
+   
+    NOTE: If a Comment may *change* from one Post to another, answer "no".
+   
+    Do you want to automatically delete orphaned App\Entity\Comment objects (orphanRemoval)? (yes/no) [no]:
+    > yes
+   
+    updated: src/Entity/Post.php
+    updated: src/Entity/Comment.php
+   
+    Add another property? Enter the property name (or press <return> to stop adding fields):
+    >
+   
+   
+              
+     Success! 
+              
+   
+    Next: When you're ready, create a migration with php bin/console make:migration
+   ```
+   
