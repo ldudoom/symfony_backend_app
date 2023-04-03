@@ -274,3 +274,191 @@ Ahora vamos a generar nuestras entidades.
    ```shell
    $ php bin/console doctrine:migrations:migrate
    ```
+
+
+## Relaciones de Tablas
+***
+
+Ahora vamos a generar las relaciones que existen entre las tarblas y entidades de nuestro sistema, por ejemplo, una categoria tendra varias publicaciones, y una publicación tendrá varios comentarios.
+
+1. Construimos la relación entre Category y Post
+
+   ```shell
+   $ php bin/console make:entity
+
+   Class name of the entity to create or update (e.g. TinyChef):
+   > Category
+   Category
+   
+   Your entity already exists! So let's add some new fields!
+   
+   New property name (press <return> to stop adding fields):
+   > posts
+   
+   Field type (enter ? to see all types) [string]:
+   > relation
+   relation
+   
+   What class should this entity be related to?:
+   > Post
+   Post
+   
+   What type of relationship is this?
+    ------------ --------------------------------------------------------------------- 
+   Type         Description
+    ------------ --------------------------------------------------------------------- 
+   ManyToOne    Each Category relates to (has) one Post.                             
+   Each Post can relate to (can have) many Category objects.
+   
+   OneToMany    Each Category can relate to (can have) many Post objects.            
+   Each Post relates to (has) one Category.
+   
+   ManyToMany   Each Category can relate to (can have) many Post objects.            
+   Each Post can also relate to (can also have) many Category objects.
+   
+   OneToOne     Each Category relates to (has) exactly one Post.                     
+   Each Post also relates to (has) exactly one Category.
+    ------------ --------------------------------------------------------------------- 
+   
+   Relation type? [ManyToOne, OneToMany, ManyToMany, OneToOne]:
+   > OneToMany
+   OneToMany
+   
+   A new property will also be added to the Post class so that you can access and set the related Category object from it.
+   
+   New field name inside Post [category]:
+   > category
+   
+   Is the Post.category property allowed to be null (nullable)? (yes/no) [yes]:
+   > no
+   
+   Do you want to activate orphanRemoval on your relationship?
+   A Post is "orphaned" when it is removed from its related Category.
+   e.g. $category->removePost($post)
+   
+   NOTE: If a Post may *change* from one Category to another, answer "no".
+   
+   Do you want to automatically delete orphaned App\Entity\Post objects (orphanRemoval)? (yes/no) [no]:
+   > yes
+   
+   updated: src/Entity/Category.php
+   updated: src/Entity/Post.php
+   
+   Add another property? Enter the property name (or press <return> to stop adding fields):
+   >
+   
+   
+   
+   Success!
+   
+   
+   Next: When you're ready, create a migration with php bin/console make:migration
+
+
+
+   ```
+   
+2. Ahora vamos a generar la relación entre Post y Comment
+
+   ```shell
+   $ php bin/console make:entity
+   
+    Class name of the entity to create or update (e.g. AgreeableGnome):
+    > Post
+   Post
+   
+    Your entity already exists! So let's add some new fields!
+   
+    New property name (press <return> to stop adding fields):
+    > comments
+   
+    Field type (enter ? to see all types) [string]:
+    > relation
+   relation
+   
+    What class should this entity be related to?:
+    > Comment
+   Comment
+   
+   What type of relationship is this?
+    ------------ -------------------------------------------------------------------- 
+     Type         Description                                                         
+    ------------ -------------------------------------------------------------------- 
+     ManyToOne    Each Post relates to (has) one Comment.                             
+                  Each Comment can relate to (can have) many Post objects.            
+                                                                                      
+     OneToMany    Each Post can relate to (can have) many Comment objects.            
+                  Each Comment relates to (has) one Post.                             
+                                                                                      
+     ManyToMany   Each Post can relate to (can have) many Comment objects.            
+                  Each Comment can also relate to (can also have) many Post objects.  
+                                                                                      
+     OneToOne     Each Post relates to (has) exactly one Comment.                     
+                  Each Comment also relates to (has) exactly one Post.                
+    ------------ -------------------------------------------------------------------- 
+   
+    Relation type? [ManyToOne, OneToMany, ManyToMany, OneToOne]:
+    > OneToMany
+   OneToMany
+   
+    A new property will also be added to the Comment class so that you can access and set the related Post object from it.
+   
+    New field name inside Comment [post]:
+    >
+   
+    Is the Comment.post property allowed to be null (nullable)? (yes/no) [yes]:
+    > no
+   
+    Do you want to activate orphanRemoval on your relationship?
+    A Comment is "orphaned" when it is removed from its related Post.
+    e.g. $post->removeComment($comment)
+   
+    NOTE: If a Comment may *change* from one Post to another, answer "no".
+   
+    Do you want to automatically delete orphaned App\Entity\Comment objects (orphanRemoval)? (yes/no) [no]:
+    > yes
+   
+    updated: src/Entity/Post.php
+    updated: src/Entity/Comment.php
+   
+    Add another property? Enter the property name (or press <return> to stop adding fields):
+    >
+   
+   
+              
+     Success! 
+              
+   
+    Next: When you're ready, create a migration with php bin/console make:migration
+   ```
+
+3. Generamos las migraciones con los cambios que hemos generado
+
+```shell
+$ php bin/console make:migration
+```
+
+4. Y ahora ejecutamos esta migración para que esos cambios queden reflejados en nuestra BBDD
+
+```shell
+$ php bin/console doctrine:migrations:migrate
+
+# Abreviado
+
+$ php bin/console d:mi:mi
+```
+
+   
+> **NOTA:** Para saber el estado de las migraciones podemos ejecutar el comando:
+>   ```shell
+>   $ php bin/console doctrine:migrations:status
+>   
+>   # O abreviado 
+>   
+>   $ php bin/console d:mi:sta
+>   ```
+
+> Para deshacer la última migración, _**ojo** no traten de modificar migraciones anterioes, y asegurarse de que la bbdd esté vacía_
+>   ```shell
+>   $ php bin/console doctrine:migration:execute `DoctrineMigrations\Version...` --down
+>   ```
