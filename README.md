@@ -462,3 +462,98 @@ $ php bin/console d:mi:mi
 >   ```shell
 >   $ php bin/console doctrine:migration:execute `DoctrineMigrations\Version...` --down
 >   ```
+
+
+## Panel Administrativo
+***
+
+Vamos a generar el panel administrativo para, justamente, poder administrar la información en BBDD de las entidades que hemos creado.
+
+1. Iniciamos instalando el componente necesario para nuestra configuración:
+
+   ```shell
+   $ composer require easycorp/easyadmin-bundle
+   ```
+
+   Ahora tenemos nuevos comandos en nuestro sistema, si ejecutamos `$ php bin/console` veremos comandos como:
+   
+   ```shell
+   make:admin:crud                            Creates a new EasyAdmin CRUD controller class
+   make:admin:dashboard                       Creates a new EasyAdmin Dashboard class
+   ```
+   Que son los comandos que usaremos para crear nuestros componentes del lado del admin.
+
+2. Vamos a iniciar construyendo el Dashboard con la ayuda del comando `$ php bin/console make:admin:dashboard` y completamos el asistente con la siguiente información 
+
+   ```shell
+   $ php bin/console make:admin:dashboard
+   
+    Which class name do you prefer for your Dashboard controller? [DashboardController]:
+    > 
+   
+    In which directory of your project do you want to generate "DashboardController"? [src/Controller/Admin/]:
+    > 
+   
+   
+                                                                                                                           
+    [OK] Your dashboard class has been successfully generated.                                                             
+                                                                                                                           
+   
+    Next steps:
+    * Configure your Dashboard at "src/Controller/Admin/DashboardController.php"
+    * Run "make:admin:crud" to generate CRUD controllers and link them from the Dashboard.
+   
+   ```
+   
+   Con esta acción, se genera el directorio "**Admin**" dentro de "**/src/Controller**", y dentro se genera el archivo **DashboardController.php** que tiene el siguiente código:
+
+   ```php
+   <?php
+   
+   namespace App\Controller\Admin;
+   
+   use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
+   use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
+   use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractDashboardController;
+   use Symfony\Component\HttpFoundation\Response;
+   use Symfony\Component\Routing\Annotation\Route;
+   
+   class DashboardController extends AbstractDashboardController
+   {
+       #[Route('/admin', name: 'admin')]
+       public function index(): Response
+       {
+           return parent::index();
+   
+           // Option 1. You can make your dashboard redirect to some common page of your backend
+           //
+           // $adminUrlGenerator = $this->container->get(AdminUrlGenerator::class);
+           // return $this->redirect($adminUrlGenerator->setController(OneOfYourCrudController::class)->generateUrl());
+   
+           // Option 2. You can make your dashboard redirect to different pages depending on the user
+           //
+           // if ('jane' === $this->getUser()->getUsername()) {
+           //     return $this->redirect('...');
+           // }
+   
+           // Option 3. You can render some custom template to display a proper dashboard with widgets, etc.
+           // (tip: it's easier if your template extends from @EasyAdmin/page/content.html.twig)
+           //
+           // return $this->render('some/path/my-dashboard.html.twig');
+       }
+   
+       public function configureDashboard(): Dashboard
+       {
+           return Dashboard::new()
+               ->setTitle('Backend Application');
+       }
+   
+       public function configureMenuItems(): iterable
+       {
+           yield MenuItem::linkToDashboard('Dashboard', 'fa fa-home');
+           // yield MenuItem::linkToCrud('The Label', 'fas fa-list', EntityClass::class);
+       }
+   }
+   
+   ```
+   
