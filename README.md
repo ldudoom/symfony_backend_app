@@ -274,3 +274,87 @@ Ahora vamos a generar nuestras entidades.
    ```shell
    $ php bin/console doctrine:migrations:migrate
    ```
+
+
+## Relaciones de Tablas
+***
+
+Ahora vamos a generar las relaciones que existen entre las tarblas y entidades de nuestro sistema, por ejemplo, una categoria tendra varias publicaciones, y una publicación tendrá varios comentarios.
+
+1. Construimos la relación entre Category y Post
+
+   ```shell
+   $ php bin/console make:entity
+
+   Class name of the entity to create or update (e.g. TinyChef):
+   > Category
+   Category
+   
+   Your entity already exists! So let's add some new fields!
+   
+   New property name (press <return> to stop adding fields):
+   > posts
+   
+   Field type (enter ? to see all types) [string]:
+   > relation
+   relation
+   
+   What class should this entity be related to?:
+   > Post
+   Post
+   
+   What type of relationship is this?
+    ------------ --------------------------------------------------------------------- 
+   Type         Description
+    ------------ --------------------------------------------------------------------- 
+   ManyToOne    Each Category relates to (has) one Post.                             
+   Each Post can relate to (can have) many Category objects.
+   
+   OneToMany    Each Category can relate to (can have) many Post objects.            
+   Each Post relates to (has) one Category.
+   
+   ManyToMany   Each Category can relate to (can have) many Post objects.            
+   Each Post can also relate to (can also have) many Category objects.
+   
+   OneToOne     Each Category relates to (has) exactly one Post.                     
+   Each Post also relates to (has) exactly one Category.
+    ------------ --------------------------------------------------------------------- 
+   
+   Relation type? [ManyToOne, OneToMany, ManyToMany, OneToOne]:
+   > OneToMany
+   OneToMany
+   
+   A new property will also be added to the Post class so that you can access and set the related Category object from it.
+   
+   New field name inside Post [category]:
+   > category
+   
+   Is the Post.category property allowed to be null (nullable)? (yes/no) [yes]:
+   > no
+   
+   Do you want to activate orphanRemoval on your relationship?
+   A Post is "orphaned" when it is removed from its related Category.
+   e.g. $category->removePost($post)
+   
+   NOTE: If a Post may *change* from one Category to another, answer "no".
+   
+   Do you want to automatically delete orphaned App\Entity\Post objects (orphanRemoval)? (yes/no) [no]:
+   > yes
+   
+   updated: src/Entity/Category.php
+   updated: src/Entity/Post.php
+   
+   Add another property? Enter the property name (or press <return> to stop adding fields):
+   >
+   
+   
+   
+   Success!
+   
+   
+   Next: When you're ready, create a migration with php bin/console make:migration
+
+
+
+   ```
+   
