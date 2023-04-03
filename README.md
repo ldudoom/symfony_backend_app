@@ -9,13 +9,13 @@ Lo primero que debemos hacer es instalar el CLI de Symfony, siguiendo las instru
 
 Una vez instalado el CLI, instalamos un proyecto limpio de Symfony utilizando el comando:
 
-```bash
+```shell
 $ symfony new backend-application
 ```
 
 En caso de tener problemas para instalar el CLI de Symfony, podemos instalar el nuevo proyecto usando ***composer***
 
-```bash
+```shell
 $ composer create-project symfony/skeleton:"6.2.*" backend-application
 ```
 
@@ -27,7 +27,7 @@ que no necesitemos, con lo cual el proyecto estará construido de manera muy efi
 
 Una vez que tenemos instalado nuestro proyecto en su versión básica, vamos a instalar las dependencias que necesitamos:
 
-```bash
+```shell
 $ composer require symfony/maker-bundle --dev
 $ composer require symfony/orm-pack
 $ composer require symfony/form
@@ -38,7 +38,7 @@ $ composer require symfony/webpack-encore-bundle
 
 Ahora procedemos a instalar los componentes para tener completamente habilitado nuestro frontend:
 
-```bash
+```shell
 $ npm install
 ```
 
@@ -46,7 +46,7 @@ $ npm install
 
 1. Instalamos bootstrap en nuestro proyecto, ejecutando:
 
-    ```bash
+    ```shell
     $ npm install bootstrap --save-dev
     ```
 
@@ -66,7 +66,7 @@ $ npm install
 
 4. Por ultimo, ejecutamos en la consola el comando:
 
-    ```bash
+    ```shell
     $ npm run dev
     ```
    
@@ -97,12 +97,174 @@ Ahora vamos a configurar nuestro sistema de datos.
 
 4. Generar la base de datos en nuestro DBMS
 
-   ```bash
+   ```shell
    $ php bin/console doctrine:database:create   
    ```
    Deberemos recibir un mesnaje como este:
-   ```bash
+   ```shell
    Created database `dbName` for connection named default
    ```
 
 Con eso, nuestro sistema queda configurado para conectarse a la BBDD y tenemos generada la misma.
+
+Ahora vamos a generar nuestras entidades.
+
+1. Creamos la entidad Category
+
+   ```shell
+   $ php bin/console make:entity
+   
+   Class name of the entity to create or update (e.g. BraveChef):
+   > Category
+   Category
+   
+   created: src/Entity/Category.php
+   created: src/Repository/CategoryRepository.php
+   
+   Entity generated! Now let's add some fields!
+   You can always add more fields later manually or by re-running this command.
+   
+   New property name (press <return> to stop adding fields):
+   > name
+   
+   Field type (enter ? to see all types) [string]:
+   >
+   
+   
+   Field length [255]:
+   > 128
+   
+   Can this field be null in the database (nullable) (yes/no) [no]:
+   >
+   
+   updated: src/Entity/Category.php
+   
+   Add another property? Enter the property name (or press <return> to stop adding fields):
+   > slug
+   
+   Field type (enter ? to see all types) [string]:
+   >
+   
+   
+   Field length [255]:
+   > 128
+   
+   Can this field be null in the database (nullable) (yes/no) [no]:
+   >
+   
+   updated: src/Entity/Category.php
+   ```
+   
+2. Creamos la entidad Post
+   
+   ```shell
+   $ php bin/console make:entity
+
+   Class name of the entity to create or update (e.g. BravePuppy):
+   > Post
+   Post
+   
+   created: src/Entity/Post.php
+   created: src/Repository/PostRepository.php
+   
+   Entity generated! Now let's add some fields!
+   You can always add more fields later manually or by re-running this command.
+   
+   New property name (press <return> to stop adding fields):
+   > title
+   
+   Field type (enter ? to see all types) [string]:
+   >
+   
+   
+   Field length [255]:
+   > 128
+   
+   Can this field be null in the database (nullable) (yes/no) [no]:
+   >
+   
+   updated: src/Entity/Post.php
+   
+   Add another property? Enter the property name (or press <return> to stop adding fields):
+   > slug
+   
+   Field type (enter ? to see all types) [string]:
+   >
+   
+   
+   Field length [255]:
+   >
+   
+   Can this field be null in the database (nullable) (yes/no) [no]:
+   >
+   
+   updated: src/Entity/Post.php
+   
+   Add another property? Enter the property name (or press <return> to stop adding fields):
+   > content
+   
+   Field type (enter ? to see all types) [string]:
+   > text
+   text
+   
+   Can this field be null in the database (nullable) (yes/no) [no]:
+   >
+   
+   updated: src/Entity/Post.php
+   
+   Add another property? Enter the property name (or press <return> to stop adding fields):
+   >
+   
+   
+   
+   Success!
+   
+   
+   Next: When you're ready, create a migration with php bin/console make:migration
+
+   ```
+   
+3. Creamos la entidad Comment
+
+   ```shell
+   $ php bin/console make:entity
+
+   Class name of the entity to create or update (e.g. VictoriousElephant):
+   > Comment
+   Comment
+   
+   created: src/Entity/Comment.php
+   created: src/Repository/CommentRepository.php
+   
+   Entity generated! Now let's add some fields!
+   You can always add more fields later manually or by re-running this command.
+   
+   New property name (press <return> to stop adding fields):
+   > content
+   
+   Field type (enter ? to see all types) [string]:
+   > text
+   text
+   
+   Can this field be null in the database (nullable) (yes/no) [no]:
+   >
+   
+   updated: src/Entity/Comment.php
+   
+   Add another property? Enter the property name (or press <return> to stop adding fields):
+   >
+   
+   
+   
+   Success!
+   
+   
+   Next: When you're ready, create a migration with php bin/console make:migration
+
+   ```
+   
+4. Creamos nuestras migraciones
+
+   ```shell
+   $ php bin/console make:migrations
+   ```
