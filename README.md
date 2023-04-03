@@ -268,3 +268,9 @@ Ahora vamos a generar nuestras entidades.
    ```shell
    $ php bin/console make:migrations
    ```
+   
+5. Ahora vamos a ejecutar las migraciones para que se actualice nuestra BBDD
+
+   ```shell
+   $ php bin/console doctrine:migrations:migrate
+   ```
