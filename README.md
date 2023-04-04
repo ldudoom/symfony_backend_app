@@ -710,3 +710,143 @@ public function configureMenuItems(): iterable
 ```
 
 
+## Personalización de las vistas administrativas
+***
+
+
+### POST
+***
+
+1. Empezamos por actualizar las vistas de Post, en primer lugar, vamos a descomentar el metodo del controlador que se encuentra encerrado en comentarios:
+
+   ***/src/Controller/Admin/PostCrudController.php***
+   ```php
+   // Importamos las clases necesarias
+   use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
+   use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
+   use EasyCorp\Bundle\EasyAdminBundle\Field\TextEditorField;
+   use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
+   use EasyCorp\Bundle\EasyAdminBundle\Field\SlugField;
+   
+   // Descomentamos el metodo
+   public function configureFields(string $pageName): iterable
+   {
+        return [
+            IdField::new('id')->onlyOnIndex(),
+            AssociationField::new('category', 'Category'),
+            TextField::new('title'),
+            SlugField::new('slug')->setTargetFieldName('title'),
+            TextEditorField::new('content')->hideOnIndex(),
+        ];
+   }
+   ```
+
+2. Agregamos el método de configuracion del CRUD con el siguiente código
+
+   ***/src/Controller/Admin/PostCrudController.php***
+   ```php
+   use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
+   
+   
+   public function configureCrud(Crud $crud): Crud
+   {
+        return $crud->setSearchFields(['title', 'content'])
+                    ->setDefaultSort(['title' => 'DESC']);
+   }
+   ```
+
+3. Por ultimo, para no obtener un error al momento de renderizar el formulario de Post, debido a que tiene una asociación con Categoria, debemos especificar el méto __toString() de la siguiente manera:
+
+   ***/src/Entity/Category.php***
+   ```php
+   public function __toString(): string
+   {
+        return (string) $this->getName();
+   }
+   ```
+   
+### CATEGORY
+***
+
+1. Importamos las clases necesarias para hacer nuestra configuración
+
+   ***/src/Controller/Admin/CategoryCrudController.php***
+   ```php
+   use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
+   use EasyCorp\Bundle\EasyAdminBundle\Field\SlugField;
+   use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
+   ```
+
+2. Agregamos el metodo de configuración del CRUD
+   
+   ***/src/Controller/Admin/CategoryCrudController.php***
+   ```php
+   public function configureCrud(Crud $crud): Crud
+   {
+        return $crud->setSearchFields(['name'])
+                    ->setDefaultSort(['name' => 'ASC']);
+   }
+   ```
+
+3. Descomentamos y colocamos el metodo correcto en el método de configuración de campos
+
+   ***/src/Controller/Admin/CategoryCrudController.php***
+   ```php
+   public function configureFields(string $pageName): iterable
+   {
+        return [
+            IdField::new('id')->onlyOnIndex(),
+            TextField::new('name'),
+            SlugField::new('slug')->setTargetFieldName('name')
+        ];
+   }
+   ```
+
+### COMMENTS
+***
+
+1. Importamos las clases necesarias en el controlador para hacer la configuración
+
+***/src/Controller/Admin/CommentCrudController.php***
+```php
+use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
+use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\TextEditorField;
+```
+
+2. Agregamos el metodo de configuración del CRUD
+
+   ***/src/Controller/Admin/CommentCrudController.php***
+   ```php
+   public function configureCrud(Crud $crud): Crud
+   {
+        return $crud->setSearchFields(['content'])
+                    ->setDefaultSort(['id' => 'DESC']);
+   }
+   ```
+
+3. Descomentamos y colocamos el metodo correcto en el método de configuración de campos
+
+   ***/src/Controller/Admin/CommentCrudController.php***
+   ```php
+   public function configureFields(string $pageName): iterable
+   {
+        return [
+            IdField::new('id')->onlyOnIndex(),
+            AssociationField::new('post', 'Post'),
+            TextEditorField::new('content'),
+        ];
+   }
+   ```
+   
+4. Agregamos el metodo __toString() en la entidad Post
+
+
+   ***/src/Entity/Post.php***
+   ```php
+   public function __toString(): string
+   {
+        return (string) $this->getTitle();
+   }
+   ```
