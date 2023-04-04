@@ -850,3 +850,56 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\TextEditorField;
         return (string) $this->getTitle();
    }
    ```
+
+
+## Traducción del Panel Administrativo
+***
+
+Actualizamos el archvio ***translation.yaml*** cambiando el idioma de ingles a español.
+
+***/config/translation.yaml***
+```yaml
+framework:
+    default_locale: es
+```
+
+Podemos hacer esto debido a que EasyAdmin ya trae los archivo de traducción a varios idiomas, entre ellos el español
+
+De todas maneras, el sistema toma, en ciertas partes, el nombre de nuestras entidades, por lo que seguramente van a seguirse viendo en el idioma ingles, para eso hacemos la siguiente configuración en los controladores
+
+***/src/Controller/Admin/CategoryCrudController.php***
+```php
+public function configureCrud(Crud $crud): Crud
+{
+     return $crud
+         ->setEntityLabelInSingular('Categoría')
+         ->setEntityLabelInPlural('Categorías')
+         ->setSearchFields(['name'])
+         ->setDefaultSort(['name' => 'ASC']);
+}
+```
+
+***/src/Controller/Admin/PostCrudController.php***
+```php
+public function configureCrud(Crud $crud): Crud
+{
+     return $crud
+         ->setEntityLabelInSingular('Publicación')
+         ->setEntityLabelInPlural('Publicaciones')
+         ->setSearchFields(['title', 'content'])
+         ->setDefaultSort(['title' => 'ASC']);
+}
+```
+
+***/src/Controller/Admin/CommentCrudController.php***
+```php
+public function configureCrud(Crud $crud): Crud
+{
+        return $crud
+            ->setEntityLabelInSingular('Comentario')
+            ->setEntityLabelInPlural('Comentarios')
+            ->setSearchFields(['content'])
+            ->setDefaultSort(['id' => 'DESC']);
+}
+```
+

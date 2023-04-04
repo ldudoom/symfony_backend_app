@@ -35,6 +35,6 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkToCrud('Posts', 'fa fa-list', Post::class);
         yield MenuItem::linkToCrud('Comments', 'fa fa-comments', Comment::class);
         yield MenuItem::section('WEB SITE');
-        yield MenuItem::linkToRoute('Sitio Web', 'fa fa-home', 'app_home');
+        yield MenuItem::linkToRoute('Public Web Site', 'fa fa-home', 'app_home');
     }
 }

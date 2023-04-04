@@ -20,8 +20,11 @@ class PostCrudController extends AbstractCrudController
 
     public function configureCrud(Crud $crud): Crud
     {
-        return $crud->setSearchFields(['title', 'content'])
-                    ->setDefaultSort(['title' => 'ASC']);
+        return $crud
+            ->setEntityLabelInSingular('Publicación')
+            ->setEntityLabelInPlural('Publicaciones')
+            ->setSearchFields(['title', 'content'])
+            ->setDefaultSort(['title' => 'ASC']);
     }
 
 
