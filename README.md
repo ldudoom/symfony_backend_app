@@ -903,3 +903,16 @@ public function configureCrud(Crud $crud): Crud
 }
 ```
 
+## Estructura de Datos Falsos
+***
+
+Vamos a generar los datos falsos para tener informacion y ver mejor nuestro panel de administración:
+
+1. Instalamos los componentes que nos ayudan con la generación de datos falsos:
+
+```shell
+$ composer require orm-fixtures --dev
+$ composer require zenstruck/foundry --dev
+```
+
+2. 
