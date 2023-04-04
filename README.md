@@ -708,3 +708,5 @@ public function configureMenuItems(): iterable
      yield MenuItem::linkToRoute('Sitio Web', 'fas fa-globe', 'app_home');
 }
 ```
+
+
