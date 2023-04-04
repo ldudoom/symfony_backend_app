@@ -462,3 +462,251 @@ $ php bin/console d:mi:mi
 >   ```shell
 >   $ php bin/console doctrine:migration:execute `DoctrineMigrations\Version...` --down
 >   ```
+
+
+## Panel Administrativo
+***
+
+Vamos a generar el panel administrativo para, justamente, poder administrar la información en BBDD de las entidades que hemos creado.
+
+1. Iniciamos instalando el componente necesario para nuestra configuración:
+
+   ```shell
+   $ composer require easycorp/easyadmin-bundle
+   ```
+
+   Ahora tenemos nuevos comandos en nuestro sistema, si ejecutamos `$ php bin/console` veremos comandos como:
+   
+   ```shell
+   make:admin:crud                            Creates a new EasyAdmin CRUD controller class
+   make:admin:dashboard                       Creates a new EasyAdmin Dashboard class
+   ```
+   Que son los comandos que usaremos para crear nuestros componentes del lado del admin.
+
+2. Vamos a iniciar construyendo el Dashboard con la ayuda del comando `$ php bin/console make:admin:dashboard` y completamos el asistente con la siguiente información 
+
+   ```shell
+   $ php bin/console make:admin:dashboard
+   
+    Which class name do you prefer for your Dashboard controller? [DashboardController]:
+    > 
+   
+    In which directory of your project do you want to generate "DashboardController"? [src/Controller/Admin/]:
+    > 
+   
+   
+                                                                                                                           
+    [OK] Your dashboard class has been successfully generated.                                                             
+                                                                                                                           
+   
+    Next steps:
+    * Configure your Dashboard at "src/Controller/Admin/DashboardController.php"
+    * Run "make:admin:crud" to generate CRUD controllers and link them from the Dashboard.
+   
+   ```
+   
+   Con esta acción, se genera el directorio "**Admin**" dentro de "**/src/Controller**", y dentro se genera el archivo **DashboardController.php** que tiene el siguiente código:
+
+   ```php
+   <?php
+   
+   namespace App\Controller\Admin;
+   
+   use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
+   use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
+   use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractDashboardController;
+   use Symfony\Component\HttpFoundation\Response;
+   use Symfony\Component\Routing\Annotation\Route;
+   
+   class DashboardController extends AbstractDashboardController
+   {
+       #[Route('/admin', name: 'admin')]
+       public function index(): Response
+       {
+           return parent::index();
+   
+           // Option 1. You can make your dashboard redirect to some common page of your backend
+           //
+           // $adminUrlGenerator = $this->container->get(AdminUrlGenerator::class);
+           // return $this->redirect($adminUrlGenerator->setController(OneOfYourCrudController::class)->generateUrl());
+   
+           // Option 2. You can make your dashboard redirect to different pages depending on the user
+           //
+           // if ('jane' === $this->getUser()->getUsername()) {
+           //     return $this->redirect('...');
+           // }
+   
+           // Option 3. You can render some custom template to display a proper dashboard with widgets, etc.
+           // (tip: it's easier if your template extends from @EasyAdmin/page/content.html.twig)
+           //
+           // return $this->render('some/path/my-dashboard.html.twig');
+       }
+   
+       public function configureDashboard(): Dashboard
+       {
+           return Dashboard::new()
+               ->setTitle('Backend Application');
+       }
+   
+       public function configureMenuItems(): iterable
+       {
+           yield MenuItem::linkToDashboard('Dashboard', 'fa fa-home');
+           // yield MenuItem::linkToCrud('The Label', 'fas fa-list', EntityClass::class);
+       }
+   }
+   
+   ```
+   
+   Este momento tenemos la version por defecto del dashboard de nuestro admin, y lo podremos ver en la ruta [https://localhost:8000/admin](https://localhost:8000/admin) una vez que levantemos nuestro servidor local ejecutando el comando `$ symfony serve`
+
+3. Vamos a crear nuestra primera configuración, será el primer CRUD de nuestro sistema, para eso haremos lo siguiente:
+
+   ```shell
+   $ php bin/console make:admin:crud
+   
+    Which Doctrine entity are you going to manage with this CRUD controller?:
+     [0] App\Entity\Category
+     [1] App\Entity\Comment
+     [2] App\Entity\Post
+    > 0
+   0
+   
+    Which directory do you want to generate the CRUD controller in? [src/Controller/Admin/]:
+    >
+   
+    Namespace of the generated CRUD controller [App\Controller\Admin]:
+    >
+   
+                                                                                                                           
+    [OK] Your CRUD controller class has been successfully generated.                                                       
+                                                                                                                           
+   
+    Next steps:
+    * Configure your controller at "src/Controller/Admin/CategoryCrudController.php"
+    * Read EasyAdmin docs: https://symfony.com/doc/master/bundles/EasyAdminBundle/index.html
+   
+   ```
+
+4. Tenemos un nuevo archivo llamado **CategoryCrudController.php** dentro de **/src/Controller/Admin** con el siguiente código:
+
+   **/src/Controller/Admin/CategoryCrudController.php**
+   ```php
+   <?php
+   
+   namespace App\Controller\Admin;
+   
+   use App\Entity\Category;
+   use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
+   
+   class CategoryCrudController extends AbstractCrudController
+   {
+       public static function getEntityFqcn(): string
+       {
+           return Category::class;
+       }
+   
+       /*
+       public function configureFields(string $pageName): iterable
+       {
+           return [
+               IdField::new('id'),
+               TextField::new('title'),
+               TextEditorField::new('description'),
+           ];
+       }
+       */
+   }
+   
+   ```
+   
+5. Vamos ahora a generar los 2 Controladores CRUD adicionales que nos hacen falta, uno para Post y uno para Comment
+
+   ```shell
+   $ php bin/console make:admin:crud
+   
+    Which Doctrine entity are you going to manage with this CRUD controller?:
+     [0] App\Entity\Category
+     [1] App\Entity\Comment
+     [2] App\Entity\Post
+    > 1
+   0
+   
+    Which directory do you want to generate the CRUD controller in? [src/Controller/Admin/]:
+    >
+   
+    Namespace of the generated CRUD controller [App\Controller\Admin]:
+    >
+   
+                                                                                                                           
+    [OK] Your CRUD controller class has been successfully generated.                                                       
+                                                                                                                           
+   
+    Next steps:
+    * Configure your controller at "src/Controller/Admin/CommentCrudController.php"
+    * Read EasyAdmin docs: https://symfony.com/doc/master/bundles/EasyAdminBundle/index.html
+   
+   ```
+
+   ```shell
+   $ php bin/console make:admin:crud
+   
+    Which Doctrine entity are you going to manage with this CRUD controller?:
+     [0] App\Entity\Category
+     [1] App\Entity\Comment
+     [2] App\Entity\Post
+    > 2
+   0
+   
+    Which directory do you want to generate the CRUD controller in? [src/Controller/Admin/]:
+    >
+   
+    Namespace of the generated CRUD controller [App\Controller\Admin]:
+    >
+   
+                                                                                                                           
+    [OK] Your CRUD controller class has been successfully generated.                                                       
+                                                                                                                           
+   
+    Next steps:
+    * Configure your controller at "src/Controller/Admin/PostCrudController.php"
+    * Read EasyAdmin docs: https://symfony.com/doc/master/bundles/EasyAdminBundle/index.html
+   
+   ```
+   
+
+6. Lo siguiente es configurar el **DashboardController** de tal manera que nos permita acceder a los componentes que hemos generado, para eso, hacemos los siguientes cambios.
+
+   ***/src/Controller/Admin/DashboardController.php***
+   ```php
+   use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
+   
+   
+   #[Route('/admin', name: 'admin')]
+   public function index(): Response
+   {
+        $adminUrlGenerator = $this->container->get(AdminUrlGenerator::class);
+        return $this->redirect($adminUrlGenerator->setController(PostCrudController::class)->generateUrl());
+   }
+   ```
+   Estas acciones harán que veamos por defecto la pantalla principal del CRUD de Posts, con lo cual veremos la pantalla de **Lista de Posts**
+
+7. Vamos ahora a configurar los items del menú del panel de administración
+
+```php
+use App\Entity\Category;
+use App\Entity\Comment;
+use App\Entity\Post;
+
+public function configureMenuItems(): iterable
+{
+     yield MenuItem::section('ADMIN');
+     yield MenuItem::linkToDashboard('Dashboard', 'fa fa-home');
+     yield MenuItem::linkToCrud('Categories', 'fas fa-tag', Category::class);
+     yield MenuItem::linkToCrud('Posts', 'fas fa-list', Post::class);
+     yield MenuItem::linkToCrud('Comments', 'fas fa-comment', Comment::class);
+     yield MenuItem::section('WEB SITE');
+     yield MenuItem::linkToRoute('Sitio Web', 'fas fa-globe', 'app_home');
+}
+```
+
+
