@@ -713,6 +713,10 @@ public function configureMenuItems(): iterable
 ## Personalización de las vistas administrativas
 ***
 
+
+### POST
+***
+
 1. Empezamos por actualizar las vistas de Post, en primer lugar, vamos a descomentar el metodo del controlador que se encuentra encerrado en comentarios:
 
    ***/src/Controller/Admin/PostCrudController.php***
@@ -758,5 +762,42 @@ public function configureMenuItems(): iterable
    public function __toString(): string
    {
         return (string) $this->getName();
+   }
+   ```
+   
+### CATEGORY
+***
+
+1. Importamos las clases necesarias para hacer nuestra configuración
+
+   ***/src/Controller/Admin/CategoryCrudController.php***
+   ```php
+   use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
+   use EasyCorp\Bundle\EasyAdminBundle\Field\SlugField;
+   use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
+   ```
+
+2. Agregamos el metodo de configuración del CRUD
+   
+   ***/src/Controller/Admin/CategoryCrudController.php***
+   ```php
+   public function configureCrud(Crud $crud): Crud
+   {
+        return $crud->setSearchFields(['name'])
+                    ->setDefaultSort(['name' => 'ASC']);
+   }
+   ```
+
+3. Desomentamos y colocamos el metodo correcto en el método de configuración de campos
+
+   ***/src/Controller/Admin/CategoryCrudController.php***
+   ```php
+   public function configureFields(string $pageName): iterable
+   {
+        return [
+            IdField::new('id')->onlyOnIndex(),
+            TextField::new('name'),
+            SlugField::new('slug')->setTargetFieldName('name')
+        ];
    }
    ```
