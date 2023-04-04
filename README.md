@@ -971,11 +971,15 @@ Vamos a generar los datos falsos para tener informacion y ver mejor nuestro pane
 
    ***/src/Factory/CategoryFactory.php***
    ```php
+    use Symfony\Component\String\Slugger\AsciiSlugger;
+   
     protected function getDefaults(): array
     {
+        $slugger = new AsciiSlugger();
+        $name = self::faker()->word();
         return [
-            'name' => self::faker()->word(),
-            'slug' => self::faker()->slug(),
+            'name' => $name,
+            'slug' => strtolower($slugger->slug($name)),
         ];
     }
    ```
@@ -992,12 +996,16 @@ Vamos a generar los datos falsos para tener informacion y ver mejor nuestro pane
    
    ***/src/Factory/PostFactory.php***
    ```php
+    use Symfony\Component\String\Slugger\AsciiSlugger;
+   
     protected function getDefaults(): array
     {
+        $slugger = new AsciiSlugger();
+        $title = self::faker()->sentence();
         return [
             'content' => self::faker()->text(),
-            'slug' => self::faker()->slug(),
-            'title' => self::faker()->sentence(),
+            'slug' => strtolower($slugger->slug($title)),
+            'title' => $title,
         ];
     }
    ```

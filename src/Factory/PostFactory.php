@@ -4,6 +4,7 @@ namespace App\Factory;
 
 use App\Entity\Post;
 use App\Repository\PostRepository;
+use Symfony\Component\String\Slugger\AsciiSlugger;
 use Zenstruck\Foundry\ModelFactory;
 use Zenstruck\Foundry\Proxy;
 use Zenstruck\Foundry\RepositoryProxy;
@@ -46,11 +47,13 @@ final class PostFactory extends ModelFactory
      */
     protected function getDefaults(): array
     {
+        $slugger = new AsciiSlugger();
+        $title = self::faker()->sentence();
         return [
             //'category' => CategoryFactory::new(),
             'content' => self::faker()->text(),
-            'slug' => self::faker()->slug(),
-            'title' => self::faker()->sentence(),
+            'slug' => strtolower($slugger->slug($title)),
+            'title' => $title,
         ];
     }
 
