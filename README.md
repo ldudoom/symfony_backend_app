@@ -910,9 +910,39 @@ Vamos a generar los datos falsos para tener informacion y ver mejor nuestro pane
 
 1. Instalamos los componentes que nos ayudan con la generación de datos falsos:
 
-```shell
-$ composer require orm-fixtures --dev
-$ composer require zenstruck/foundry --dev
-```
+   ```shell
+   $ composer require orm-fixtures --dev
+   $ composer require zenstruck/foundry --dev
+   ```
 
-2. 
+2. Ahora ejecutamos el comando para generar los datos falsos, y seleccionamos la opción para generar datos para todas nuestras Entidades
+
+   ```shell
+   $ php bin/console make:factory
+   
+    // Note: pass --test if you want to generate factories in your tests/ directory
+   
+    // Note: pass --all-fields if you want to generate default values for all fields, not only required fields
+   
+    Entity, Document or class to create a factory for:
+     [0] App\Entity\Category
+     [1] App\Entity\Comment
+     [2] App\Entity\Post
+     [3] All
+    > 3
+   3
+   
+    created: src/Factory/CategoryFactory.php
+    created: src/Factory/PostFactory.php
+    created: src/Factory/CommentFactory.php
+   
+              
+     Success! 
+              
+   
+    Next: Open your new factory and set default values/states.
+    Find the documentation at https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#model-factories
+   
+   ```
+   
+3. 
