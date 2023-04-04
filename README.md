@@ -788,7 +788,7 @@ public function configureMenuItems(): iterable
    }
    ```
 
-3. Desomentamos y colocamos el metodo correcto en el método de configuración de campos
+3. Descomentamos y colocamos el metodo correcto en el método de configuración de campos
 
    ***/src/Controller/Admin/CategoryCrudController.php***
    ```php
@@ -799,5 +799,54 @@ public function configureMenuItems(): iterable
             TextField::new('name'),
             SlugField::new('slug')->setTargetFieldName('name')
         ];
+   }
+   ```
+
+### COMMENTS
+***
+
+1. Importamos las clases necesarias en el controlador para hacer la configuración
+
+***/src/Controller/Admin/CommentCrudController.php***
+```php
+use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
+use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\TextEditorField;
+```
+
+2. Agregamos el metodo de configuración del CRUD
+
+   ***/src/Controller/Admin/CommentCrudController.php***
+   ```php
+   public function configureCrud(Crud $crud): Crud
+   {
+        return $crud->setSearchFields(['content'])
+                    ->setDefaultSort(['id' => 'DESC']);
+   }
+   ```
+
+3. Descomentamos y colocamos el metodo correcto en el método de configuración de campos
+
+   ***/src/Controller/Admin/CommentCrudController.php***
+   ```php
+   public function configureFields(string $pageName): iterable
+   {
+        return [
+            IdField::new('id')->onlyOnIndex(),
+            AssociationField::new('post', 'Post'),
+            TextEditorField::new('content'),
+        ];
+   }
+   ```
+   
+4. Agregamos el metodo __toString() en la entidad Post
+
+
+   ***/src/Entity/Post.php***
+   ```php
+   public function __toString(): string
+   {
+        return (string) $this->getTitle();
    }
    ```
