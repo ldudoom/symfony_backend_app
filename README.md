@@ -945,4 +945,65 @@ Vamos a generar los datos falsos para tener informacion y ver mejor nuestro pane
    
    ```
    
-3. 
+3. Realizamos la configuracion para llenar de datos nuestra base:
+
+   ***/src/DataFixtures/AppFixtures.php***
+   ```php
+   use App\Factory\CategoryFactory;
+   use App\Factory\CommentFactory;
+   use App\Factory\PostFactory;
+   
+   
+   public function load(ObjectManager $manager): void
+   {
+        CategoryFactory::createMany(8);
+   
+        PostFactory::createMany(40, function() {
+            return [
+                'comments' => CommentFactory::new()->many(0,10),
+                'category' => CategoryFactory::random()
+            ];
+        });
+   }
+   ```
+   
+4. Ahora configuramos cada uno de los archivos Factory
+
+   ***/src/Factory/CategoryFactory.php***
+   ```php
+    protected function getDefaults(): array
+    {
+        return [
+            'name' => self::faker()->word(),
+            'slug' => self::faker()->slug(),
+        ];
+    }
+   ```
+   
+   ***/src/Factory/CommentFactory.php***
+   ```php
+    protected function getDefaults(): array
+    {
+        return [
+            'content' => self::faker()->text(),
+        ];
+    }
+   ```
+   
+   ***/src/Factory/PostFactory.php***
+   ```php
+    protected function getDefaults(): array
+    {
+        return [
+            'content' => self::faker()->text(),
+            'slug' => self::faker()->slug(),
+            'title' => self::faker()->sentence(),
+        ];
+    }
+   ```
+
+5. Ejecutamos el comando que poblará nuestras tablas con la configuracion que hemos hecho
+
+   ```shell
+   $ php bin/console doctrine:fixtures:load
+   ```
