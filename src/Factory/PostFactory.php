@@ -47,10 +47,10 @@ final class PostFactory extends ModelFactory
     protected function getDefaults(): array
     {
         return [
-            'category' => CategoryFactory::new(),
+            //'category' => CategoryFactory::new(),
             'content' => self::faker()->text(),
-            'slug' => self::faker()->text(255),
-            'title' => self::faker()->text(128),
+            'slug' => self::faker()->slug(),
+            'title' => self::faker()->sentence(),
         ];
     }
 
