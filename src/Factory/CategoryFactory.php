@@ -48,7 +48,7 @@ final class CategoryFactory extends ModelFactory
     protected function getDefaults(): array
     {
         $slugger = new AsciiSlugger();
-        $name = self::faker()->word();
+        $name = self::faker()->unique()->word();
         return [
             'name' => $name,
             'slug' => strtolower($slugger->slug($name)),

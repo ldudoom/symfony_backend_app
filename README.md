@@ -976,7 +976,7 @@ Vamos a generar los datos falsos para tener informacion y ver mejor nuestro pane
     protected function getDefaults(): array
     {
         $slugger = new AsciiSlugger();
-        $name = self::faker()->word();
+        $name = self::faker()->unique()->word();
         return [
             'name' => $name,
             'slug' => strtolower($slugger->slug($name)),
@@ -1001,7 +1001,7 @@ Vamos a generar los datos falsos para tener informacion y ver mejor nuestro pane
     protected function getDefaults(): array
     {
         $slugger = new AsciiSlugger();
-        $title = self::faker()->sentence();
+        $title = self::faker()->unique()->sentence();
         return [
             'content' => self::faker()->text(),
             'slug' => strtolower($slugger->slug($title)),

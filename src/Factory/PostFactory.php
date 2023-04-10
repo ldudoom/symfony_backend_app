@@ -48,7 +48,7 @@ final class PostFactory extends ModelFactory
     protected function getDefaults(): array
     {
         $slugger = new AsciiSlugger();
-        $title = self::faker()->sentence();
+        $title = self::faker()->unique()->sentence();
         return [
             //'category' => CategoryFactory::new(),
             'content' => self::faker()->text(),
