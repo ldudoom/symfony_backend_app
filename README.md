@@ -1158,3 +1158,14 @@ Vamos a empezar con el campo slug de nuestra entidad **Category.php**
    
    ```
    
+3. Generamos el archivo de migracion
+
+   ```shell
+   $ php bin/console make:migration
+   ```
+   
+4. Ejecutamo la migracion antes generada
+
+   ```shell
+   $ php bin/console doctrine:migrations:migrate
+   ```
