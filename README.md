@@ -1015,3 +1015,102 @@ Vamos a generar los datos falsos para tener informacion y ver mejor nuestro pane
    ```shell
    $ php bin/console doctrine:fixtures:load
    ```
+
+
+   
+## Campos SLUG configurados como UNICOS
+***
+
+Vamos a empezar con el campo slug de nuestra entidad **Category.php**
+
+1. Importamos la clase necesaria
+
+   ***/src/Entity/Category.php***
+   ```php
+   use Symfony\Bridge\Doctrine\Validator\Constrains\UniqueEntity;
+   ```
+
+2. Agregamos la anotacion necesaria en la clase para generar esta validacion
+
+   ***/src/Entity/Category.php***
+   ```php
+   #[ORM\Entity(repositoryClass: CategoryRepository::class)]
+   #[UniqueEntity('slug')]
+   class Category
+   {
+   ...
+   
+   ```
+
+3. Vamos a realizar el cambio de tal manera que se actualice nuestra BBDD tambien
+
+   ***/src/Entity/Category.php***
+   ```php
+   #[ORM\Column(length: 128, unique: true)]
+   private ?string $name = null;
+   
+   #[ORM\Column(length: 128, unique: true)]
+   private ?string $slug = null;
+   ```
+   
+4. Vamos a realizar los mismos pasos en la entidad **Post.php**
+
+   ***/src/Entity/Post.php***
+   ```php
+   use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+   
+   #[ORM\Entity(repositoryClass: PostRepository::class)]
+   #[UniqueEntity('slug')]
+   class Post
+   {
+       #[ORM\Column(length: 128, unique: true)]
+       private ?string $title = null;
+   
+       #[ORM\Column(length: 255, unique: true)]
+       private ?string $slug = null;
+       ...
+   
+   ```
+
+5. Ahora vamos a generar las migraciones para poder posteriormente actualizar nuestra BBDD
+
+   ```shell
+   $ php bin/console make:migration
+   ```
+   
+   Esto genera la migración con el siguiente código:
+
+   ```php
+   final class Version20230411190938 extends AbstractMigration
+   {
+      
+      public function getDescription(): string
+      {
+         return '';
+      }
+   
+       public function up(Schema $schema): void
+       {
+           // this up() migration is auto-generated, please modify it to your needs
+           $this->addSql('CREATE UNIQUE INDEX UNIQ_64C19C15E237E06 ON category (name)');
+           $this->addSql('CREATE UNIQUE INDEX UNIQ_64C19C1989D9B62 ON category (slug)');
+           $this->addSql('CREATE UNIQUE INDEX UNIQ_5A8A6C8D2B36786B ON post (title)');
+           $this->addSql('CREATE UNIQUE INDEX UNIQ_5A8A6C8D989D9B62 ON post (slug)');
+       }
+   
+       public function down(Schema $schema): void
+       {
+           // this down() migration is auto-generated, please modify it to your needs
+           $this->addSql('DROP INDEX UNIQ_64C19C15E237E06 ON category');
+           $this->addSql('DROP INDEX UNIQ_64C19C1989D9B62 ON category');
+           $this->addSql('DROP INDEX UNIQ_5A8A6C8D2B36786B ON post');
+           $this->addSql('DROP INDEX UNIQ_5A8A6C8D989D9B62 ON post');
+       }
+   }
+   ```
+
+6. Corremos el comando para ejecutar nuestra nueva migracion
+
+   ```shell
+   $ php bin/console doctrine:migrations:migrate
+   ```
