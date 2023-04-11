@@ -1164,8 +1164,94 @@ Vamos a empezar con el campo slug de nuestra entidad **Category.php**
    $ php bin/console make:migration
    ```
    
-4. Ejecutamo la migracion antes generada
+4. Ejecutamos la migración antes generada
 
    ```shell
    $ php bin/console doctrine:migrations:migrate
    ```
+   
+## Registro e inicio de sesion
+***
+
+Vamos ahora a habilitar el formulario de login y de registro, y vamos a proteger nuestro panel de administración 
+para que no pueda acceder ningun usuario a menos de que realice el proceso de login.
+
+1. Ejecutamos el comando que nos ayuda a habilitar el formulario de login:
+
+   ```shell
+   $ php bin/console make:auth
+   ```
+
+2. Llenamos el asistente con la siguiente información
+
+   ```shell
+    What style of authentication do you want? [Empty authenticator]:
+     [0] Empty authenticator
+     [1] Login form authenticator
+    > 1
+   1
+   
+    The class name of the authenticator to create (e.g. AppCustomAuthenticator):
+    > AppAuthenticator
+   
+    Choose a name for the controller class (e.g. SecurityController) [SecurityController]:
+    > 
+   
+    Do you want to generate a '/logout' URL? (yes/no) [yes]:
+    > yes
+   
+    created: src/Security/AppAuthenticator.php
+    updated: config/packages/security.yaml
+    created: src/Controller/SecurityController.php
+    created: templates/security/login.html.twig
+   
+              
+     Success! 
+              
+   
+    Next:
+    - Customize your new authenticator.
+    - Finish the redirect "TODO" in the App\Security\AppAuthenticator::onAuthenticationSuccess() method.
+    - Review & adapt the login template: templates/security/login.html.twig.
+   
+   ```
+   
+
+3. Ahora vamos a generar el formulario de registro de usuarios
+
+   ```shell
+   $ php bin/console make:registration-form
+   ```
+   > **NOTA:** En caso de requerirlo, instalar el componente de anotaciones ejecutando: `composer require doctrine/annotations`
+
+4. Llenamos el asistente de la siguiente manera
+
+   ```shell
+   Creating a registration form for App\Entity\User
+   
+    Do you want to add a @UniqueEntity validation annotation on your User class to make sure duplicate accounts aren't created? (yes/no) [yes]:
+    > yes
+   
+    Do you want to send an email to verify the user's email address after registration? (yes/no) [yes]:
+    > no
+   
+    Do you want to automatically authenticate the user after registration? (yes/no) [yes]:
+    > yes
+   
+    updated: src/Entity/User.php
+    created: src/Form/RegistrationFormType.php
+    created: src/Controller/RegistrationController.php
+    created: templates/registration/register.html.twig
+   
+              
+     Success! 
+              
+   
+    Next:
+    Make any changes you need to the form, controller & template.
+   
+    Then open your browser, go to "/register" and enjoy your new form!
+   
+   ```
+   
+
