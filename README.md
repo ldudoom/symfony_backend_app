@@ -903,3 +903,214 @@ public function configureCrud(Crud $crud): Crud
 }
 ```
 
+## Estructura de Datos Falsos
+***
+
+Vamos a generar los datos falsos para tener informacion y ver mejor nuestro panel de administración:
+
+1. Instalamos los componentes que nos ayudan con la generación de datos falsos:
+
+   ```shell
+   $ composer require orm-fixtures --dev
+   $ composer require zenstruck/foundry --dev
+   ```
+
+2. Ahora ejecutamos el comando para generar los datos falsos, y seleccionamos la opción para generar datos para todas nuestras Entidades
+
+   ```shell
+   $ php bin/console make:factory
+   
+    // Note: pass --test if you want to generate factories in your tests/ directory
+   
+    // Note: pass --all-fields if you want to generate default values for all fields, not only required fields
+   
+    Entity, Document or class to create a factory for:
+     [0] App\Entity\Category
+     [1] App\Entity\Comment
+     [2] App\Entity\Post
+     [3] All
+    > 3
+   3
+   
+    created: src/Factory/CategoryFactory.php
+    created: src/Factory/PostFactory.php
+    created: src/Factory/CommentFactory.php
+   
+              
+     Success! 
+              
+   
+    Next: Open your new factory and set default values/states.
+    Find the documentation at https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#model-factories
+   
+   ```
+   
+3. Realizamos la configuracion para llenar de datos nuestra base:
+
+   ***/src/DataFixtures/AppFixtures.php***
+   ```php
+   use App\Factory\CategoryFactory;
+   use App\Factory\CommentFactory;
+   use App\Factory\PostFactory;
+   
+   
+   public function load(ObjectManager $manager): void
+   {
+        CategoryFactory::createMany(8);
+   
+        PostFactory::createMany(40, function() {
+            return [
+                'comments' => CommentFactory::new()->many(0,10),
+                'category' => CategoryFactory::random()
+            ];
+        });
+   }
+   ```
+   
+4. Ahora configuramos cada uno de los archivos Factory
+
+   ***/src/Factory/CategoryFactory.php***
+   ```php
+    use Symfony\Component\String\Slugger\AsciiSlugger;
+   
+    protected function getDefaults(): array
+    {
+        $slugger = new AsciiSlugger();
+        $name = self::faker()->unique()->word();
+        return [
+            'name' => $name,
+            'slug' => strtolower($slugger->slug($name)),
+        ];
+    }
+   ```
+   
+   ***/src/Factory/CommentFactory.php***
+   ```php
+    protected function getDefaults(): array
+    {
+        return [
+            'content' => self::faker()->text(),
+        ];
+    }
+   ```
+   
+   ***/src/Factory/PostFactory.php***
+   ```php
+    use Symfony\Component\String\Slugger\AsciiSlugger;
+   
+    protected function getDefaults(): array
+    {
+        $slugger = new AsciiSlugger();
+        $title = self::faker()->unique()->sentence();
+        return [
+            'content' => self::faker()->text(),
+            'slug' => strtolower($slugger->slug($title)),
+            'title' => $title,
+        ];
+    }
+   ```
+
+5. Ejecutamos el comando que poblará nuestras tablas con la configuracion que hemos hecho
+
+   ```shell
+   $ php bin/console doctrine:fixtures:load
+   ```
+
+
+   
+## Campos SLUG configurados como UNICOS
+***
+
+Vamos a empezar con el campo slug de nuestra entidad **Category.php**
+
+1. Importamos la clase necesaria
+
+   ***/src/Entity/Category.php***
+   ```php
+   use Symfony\Bridge\Doctrine\Validator\Constrains\UniqueEntity;
+   ```
+
+2. Agregamos la anotacion necesaria en la clase para generar esta validacion
+
+   ***/src/Entity/Category.php***
+   ```php
+   #[ORM\Entity(repositoryClass: CategoryRepository::class)]
+   #[UniqueEntity('slug')]
+   class Category
+   {
+   ...
+   
+   ```
+
+3. Vamos a realizar el cambio de tal manera que se actualice nuestra BBDD tambien
+
+   ***/src/Entity/Category.php***
+   ```php
+   #[ORM\Column(length: 128, unique: true)]
+   private ?string $name = null;
+   
+   #[ORM\Column(length: 128, unique: true)]
+   private ?string $slug = null;
+   ```
+   
+4. Vamos a realizar los mismos pasos en la entidad **Post.php**
+
+   ***/src/Entity/Post.php***
+   ```php
+   use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+   
+   #[ORM\Entity(repositoryClass: PostRepository::class)]
+   #[UniqueEntity('slug')]
+   class Post
+   {
+       #[ORM\Column(length: 128, unique: true)]
+       private ?string $title = null;
+   
+       #[ORM\Column(length: 255, unique: true)]
+       private ?string $slug = null;
+       ...
+   
+   ```
+
+5. Ahora vamos a generar las migraciones para poder posteriormente actualizar nuestra BBDD
+
+   ```shell
+   $ php bin/console make:migration
+   ```
+   
+   Esto genera la migración con el siguiente código:
+
+   ```php
+   final class Version20230411190938 extends AbstractMigration
+   {
+      
+      public function getDescription(): string
+      {
+         return '';
+      }
+   
+       public function up(Schema $schema): void
+       {
+           // this up() migration is auto-generated, please modify it to your needs
+           $this->addSql('CREATE UNIQUE INDEX UNIQ_64C19C15E237E06 ON category (name)');
+           $this->addSql('CREATE UNIQUE INDEX UNIQ_64C19C1989D9B62 ON category (slug)');
+           $this->addSql('CREATE UNIQUE INDEX UNIQ_5A8A6C8D2B36786B ON post (title)');
+           $this->addSql('CREATE UNIQUE INDEX UNIQ_5A8A6C8D989D9B62 ON post (slug)');
+       }
+   
+       public function down(Schema $schema): void
+       {
+           // this down() migration is auto-generated, please modify it to your needs
+           $this->addSql('DROP INDEX UNIQ_64C19C15E237E06 ON category');
+           $this->addSql('DROP INDEX UNIQ_64C19C1989D9B62 ON category');
+           $this->addSql('DROP INDEX UNIQ_5A8A6C8D2B36786B ON post');
+           $this->addSql('DROP INDEX UNIQ_5A8A6C8D989D9B62 ON post');
+       }
+   }
+   ```
+
+6. Corremos el comando para ejecutar nuestra nueva migracion
+
+   ```shell
+   $ php bin/console doctrine:migrations:migrate
+   ```
