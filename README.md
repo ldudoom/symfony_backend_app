@@ -1255,3 +1255,14 @@ para que no pueda acceder ningun usuario a menos de que realice el proceso de lo
    ```
    
 
+Una vez que tenemos instalados nuestros formularios de login y registro, vamos a proteger nuestro panel administrativo
+
+Para eso simplemente vamos al archivo de configuración de seguridad, y descomentamos la linea que bloquea el acceso a 
+usuarios no autorizados:
+
+***/config/packages/security.yaml***
+```yaml
+security:
+   access_control:
+      - { path: ^/admin, roles: ROLE_ADMIN }
+```
