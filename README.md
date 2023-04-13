@@ -1266,3 +1266,12 @@ security:
    access_control:
       - { path: ^/admin, roles: ROLE_ADMIN }
 ```
+
+Este momento, si intentamos registrarnos y acceder al panel admin, vamos a tener un error, de acceso de negado, esto se da debido a que 
+tenemos en la base de datos creado el usuario luego del registro, pero este usuario aun no tiene asignado ningun rol, de momento solo 
+editamos el registro de usuario en la BBDD agregandole el rol ROLE_ADMIN:
+
+```
+["ROLE_ADMIN"]
+```
+
