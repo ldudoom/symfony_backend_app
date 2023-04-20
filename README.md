@@ -1376,3 +1376,262 @@ class UserCrudController extends AbstractCrudController
 }
 
 ```
+
+
+## Relaciones de tablas con los Usuarios
+***
+
+Ahora vamos a modificar el modulo de usuarios, para eso seguimos los siguientes pasos:
+
+1. Modificamos la entidad User de la siguiente manera
+
+   ```shell
+   $ php bin/console make:entity
+   
+   Class name of the entity to create or update (e.g. OrangeChef):
+    > User
+   User
+   
+    Your entity already exists! So let's add some new fields!
+   
+    New property name (press <return> to stop adding fields):
+    > name
+   
+    Field type (enter ? to see all types) [string]:
+    > 
+   
+   
+    Field length [255]:
+    > 128
+   
+    Can this field be null in the database (nullable) (yes/no) [no]:
+    > 
+   
+    updated: src/Entity/User.php
+   
+    Add another property? Enter the property name (or press <return> to stop adding fields):
+    > posts
+   
+    Field type (enter ? to see all types) [string]:
+    > relation
+   relation
+   
+    What class should this entity be related to?:
+    > Post
+   Post
+   
+   What type of relationship is this?
+    ------------ ----------------------------------------------------------------- 
+     Type         Description                                                      
+    ------------ ----------------------------------------------------------------- 
+     ManyToOne    Each User relates to (has) one Post.                             
+                  Each Post can relate to (can have) many User objects.            
+                                                                                   
+     OneToMany    Each User can relate to (can have) many Post objects.            
+                  Each Post relates to (has) one User.                             
+   
+     ManyToMany   Each User can relate to (can have) many Post objects.            
+                  Each Post can also relate to (can also have) many User objects.
+   
+     OneToOne     Each User relates to (has) exactly one Post.
+                  Each Post also relates to (has) exactly one User.
+    ------------ -----------------------------------------------------------------
+   
+    Relation type? [ManyToOne, OneToMany, ManyToMany, OneToOne]:
+    > OneToMany
+   OneToMany
+   
+    A new property will also be added to the Post class so that you can access and set the related User object from it.
+   
+    New field name inside Post [user]:
+    >
+   
+    Is the Post.user property allowed to be null (nullable)? (yes/no) [yes]:
+    > no
+   
+    Do you want to activate orphanRemoval on your relationship?
+    A Post is "orphaned" when it is removed from its related User.
+    e.g. $user->removePost($post)
+   
+    NOTE: If a Post may *change* from one User to another, answer "no".
+   
+    Do you want to automatically delete orphaned App\Entity\Post objects (orphanRemoval)? (yes/no) [no]:
+    > yes
+   
+    updated: src/Entity/User.php
+    updated: src/Entity/Post.php
+    
+   Add another property? Enter the property name (or press <return> to stop adding fields):
+    > comments
+   
+    Field type (enter ? to see all types) [string]:
+    > relation
+   relation
+   
+    What class should this entity be related to?:
+    > Comment
+   Comment
+   
+   What type of relationship is this?
+    ------------ --------------------------------------------------------------------
+     Type         Description
+    ------------ --------------------------------------------------------------------
+     ManyToOne    Each User relates to (has) one Comment.
+                  Each Comment can relate to (can have) many User objects.
+   
+     OneToMany    Each User can relate to (can have) many Comment objects.
+                  Each Comment relates to (has) one User.
+   
+     ManyToMany   Each User can relate to (can have) many Comment objects.
+                  Each Comment can also relate to (can also have) many User objects.
+   
+     OneToOne     Each User relates to (has) exactly one Comment.
+                  Each Comment also relates to (has) exactly one User.
+    ------------ --------------------------------------------------------------------
+   
+    Relation type? [ManyToOne, OneToMany, ManyToMany, OneToOne]:
+    > OneToMany
+   OneToMany
+   
+    A new property will also be added to the Comment class so that you can access and set the related User object from it.
+   
+    New field name inside Comment [user]:
+    >
+   
+    Is the Comment.user property allowed to be null (nullable)? (yes/no) [yes]:
+    > no
+   
+    Do you want to activate orphanRemoval on your relationship?
+    A Comment is "orphaned" when it is removed from its related User.
+    e.g. $user->removeComment($comment)
+   
+    NOTE: If a Comment may *change* from one User to another, answer "no".
+   
+    Do you want to automatically delete orphaned App\Entity\Comment objects (orphanRemoval)? (yes/no) [no]:
+    > yes
+   
+    updated: src/Entity/User.php
+    updated: src/Entity/Comment.php
+   
+    Add another property? Enter the property name (or press <return> to stop adding fields):
+    >
+   
+   
+              
+     Success! 
+              
+   
+    Next: When you're ready, create a migration with php bin/console make:migration
+   
+   ```
+
+2. Generamos la migracion de los cambios que acabamos de hacer
+
+   ```shell
+   $ php bin/console make:migration
+   ```
+
+3. Ahora debemos borrar todas las tablas antes de ejecutar esta migracion, ya que el cambio que vamos a hacer tiene restricciones de integridad referencial
+
+   ```shell
+   $ php bin/console doctrine:database:drop --force 
+   ```
+4. Ahora generamos nuevamente la BBDD
+
+   ```shell
+   $ php bin/console doctrine:database:create
+   ```
+
+5. Ahora si, ejecutamos la migracion para que los cambios queden hechos en nuestra BBDD
+
+   ```shell
+   $ php bin/console doctrine:migrations:migrate
+   ```
+
+6. Ahora vamos a crear el Factory de nuestros usuarios
+
+   ```shell
+   $ php bin/console make:Factory
+   
+   // Note: pass --test if you want to generate factories in your tests/ directory
+   
+    // Note: pass --all-fields if you want to generate default values for all fields, not only required fields
+   
+    Entity, Document or class to create a factory for:
+     [0] App\Entity\User
+     [1] All
+    > 0
+   0
+   
+    created: src/Factory/UserFactory.php
+   
+              
+     Success! 
+              
+   
+    Next: Open your new factory and set default values/states.
+    Find the documentation at https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#model-factories
+   
+   ```
+
+7. Ahora modificamos la configuracion de los datos semilla en el archivo **AppFisctures.php**
+
+   ***/src/DataFixtures/AppFixtures.php***
+   ```php
+   use App\Factory\UserFactory;
+   
+   public function load(ObjectManager $manager): void
+    {
+        CategoryFactory::createMany(8);
+        UserFactory::createMany(8);
+   
+        PostFactory::createMany(40, function() {
+            return [
+                'comments' => CommentFactory::new()->many(0,10),
+                'category' => CategoryFactory::random(),
+                'user' => UserFactory::random(),
+            ];
+        });
+    }
+   ```
+
+8. Ahora modificamos el Factory de comentarios
+
+   ***/src/Factory/CommentFactory.php***
+   ```php
+   protected function getDefaults(): array
+    {
+        return [
+            'content' => self::faker()->text(),
+            'user' => UserFactory::random(),
+        ];
+    }
+   ```
+
+9. Ahora vamos a modificar el Factory de usuarios
+
+   ***/src/Factory/UserFactory.php***
+   ```php
+   protected function getDefaults(): array
+    {
+        return [
+            'email' => self::faker()->email(),
+            'roles' => ['ROLE_USER'],
+            'password' => '123456789',
+            'name' => self::faker()->name(),
+        ];
+    }
+   ```
+   
+10. Ahora hacemos la carga de los datos falsos en nuestra BBDD
+
+```shell
+$ php bin/console doctrine:fixtures:load
+
+ Careful, database "symfony_backend" will be purged. Do you want to continue? (yes/no) [no]:
+ > yes
+
+   > purging database
+   > loading App\DataFixtures\AppFixtures
+
+```
