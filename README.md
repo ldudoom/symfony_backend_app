@@ -1275,3 +1275,104 @@ editamos el registro de usuario en la BBDD agregandole el rol ROLE_ADMIN:
 ["ROLE_ADMIN"]
 ```
 
+
+## CRUD de Usuarios
+***
+
+Vamos a replicar configuraciones anteriores, especificamente de CRUD para generarl el de usuarios.
+
+1. Ejecutamos el comando que inicia la configuracion del CRUD de usuarios:
+
+   ```shell
+   $ php bin/console make:admin:crud
+   ```
+
+2. Llenamos el asistente con la siguiente informacion:
+
+   ```shell
+    Which Doctrine entity are you going to manage with this CRUD controller?:
+     [0] App\Entity\Category
+     [1] App\Entity\Comment
+     [2] App\Entity\Post
+     [3] App\Entity\User
+    > 3
+   3
+   
+    Which directory do you want to generate the CRUD controller in? [src/Controller/Admin/]:
+    > 
+   
+    Namespace of the generated CRUD controller [App\Controller\Admin]:
+    > 
+   
+                                                                                                                           
+    [OK] Your CRUD controller class has been successfully generated.                                                       
+                                                                                                                           
+   
+    Next steps:
+    * Configure your controller at "src/Controller/Admin/UserCrudController.php"
+    * Read EasyAdmin docs: https://symfony.com/doc/master/bundles/EasyAdminBundle/index.html
+   
+   ```
+   
+3. Agregamos el acceso a este nuevo CRUD en nuestro panel, agregando el siguiente codigo en **DashboardController.php**
+
+   ***/src/Controller/Admin/DashboardController.php***
+   ```php
+   use App\Entity\User;
+   
+   public function configureMenuItems(): iterable
+   {
+        ...
+        yield MenuItem::linkToCrud('Users', 'fa fa-user', User::class);
+        ...
+   }
+   ```
+
+4. Personalizamos la lista de usuarios y los formularios, realizando la siguiente configuracion en el controlador
+
+***/src/Controller/Admin/UserCrudController.php***
+```php
+namespace App\Controller\Admin;
+
+use App\Entity\User;
+
+use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
+use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\EmailField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
+
+
+use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
+
+class UserCrudController extends AbstractCrudController
+{
+    public static function getEntityFqcn(): string
+    {
+        return User::class;
+    }
+
+    public function configureCrud(Crud $crud): Crud
+    {
+        return $crud
+            ->setEntityLabelInSingular('Usuario')
+            ->setEntityLabelInPlural('Usuarios')
+            ->setSearchFields(['email'])
+            ->setDefaultSort(['id' => 'DESC']);
+    }
+
+
+    public function configureFields(string $pageName): iterable
+    {
+        return [
+            IdField::new('id')->onlyOnIndex(),
+            EmailField::new('email'),
+            ChoiceField::new('roles')->setChoices([
+                'Administrador' => 'ROLE_ADMIN',
+                'Usuario' => 'ROLE_USER',
+            ])->allowMultipleChoices(),
+        ];
+    }
+}
+
+```
