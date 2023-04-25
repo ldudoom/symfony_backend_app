@@ -1635,3 +1635,77 @@ $ php bin/console doctrine:fixtures:load
    > loading App\DataFixtures\AppFixtures
 
 ```
+
+
+## Encriptar contraseñas en datos semilla
+***
+
+Nuestra tabla de usuarios se esta poblando con usuarios pero tenemos el inconveniente de que las claves de 
+acceso se estan guardando sin encriptar, esto por su puesto es un problema de seguridad, asi que vamos a 
+corregirlo.
+
+Para esto vamos a modificar el archivo **UserFactory.php** con el siguiente c&oacute;digo
+
+***/src/Factory/UserFactory.php***
+```php
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+
+final class UserFactory extends ModelFactory
+{
+
+    private UserPasswordHasherInterface $userPasswordHasher;
+    
+    public function __construct(UserPasswordHasherInterface $userPasswordHasher)
+    {
+        parent::__construct();
+        $this->userPasswordHasher = $userPasswordHasher;
+    }
+    
+    protected function initialize(): self
+    {
+        return $this
+            ->afterInstantiate(function(User $user): void {
+                $user->setPassword(
+                    $this->userPasswordHasher->hashPassword($user, $user->getPassword())
+                );
+            })
+        ;
+    }
+    
+    ...
+}
+```
+
+Con esta configuración, podemos ejecutar nuevamente el comando para generar fake data en nuestro systema y ya tenemos 
+los usuarios con passwords encriptados:
+
+```shell
+$ php bin/conaole doctrine:fixtures:load
+```
+
+Vamos a hacer un pequeño cambios en la configuracion de generacion de datos semilla para poder tener usuarios
+Administradores tambien, este cambio lo hacemos en **AppFixtures.php**
+
+***/src/DataFixtures/AppFixtures.php***
+```php
+public function load(ObjectManager $manager): void
+{
+        UserFactory::createOne([
+            'name' => 'Admin',
+            'email' => 'admin@myapp.com',
+            'roles' => ['ROLE_ADMIN'],
+        ]);
+
+        UserFactory::createOne([
+            'name' => 'User',
+            'email' => 'user@myapp.com',
+        ]);
+        ...
+}
+```
+
+Y volvemos a ejecutar el comando que genera nuestra fake data
+
+```shell
+$ php bin/conaole doctrine:fixtures:load
+```
