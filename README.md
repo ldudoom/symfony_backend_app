@@ -1939,3 +1939,59 @@ Creamos la vista que esta pendiente, post.html.twig
     </p>
 {% endblock %}
 ```
+
+
+## Estructura del formulario de comentarios
+***
+
+Ahora vamos a agregar un formulario para que los usuarios que visitan la web publica, puedan generar nuevos comentarios
+en cada una de las publicaciones.
+
+1. Vamos a agregar un nuevo archivo que será la vista del formulario de comentarios.
+   ```shell
+   $ touch templates/page/_comment-form.html.twig
+   ```
+   
+2. Colocamos el siguiente código en el archivo **_comment-form.html.twig**
+   
+   ***/templates/page/_comment-form.html.twig***
+   ```html
+   {% if app.user %}
+       <p>
+           Comentar como <strong>{{ app.user.name }}</strong>
+       </p>
+   {% else %}
+       <a href="{{ path('app_login') }}">Login</a>
+   {% endif %}
+   ```
+   
+3. Incluimos este archivo en el detalle de la publicación
+
+   ***/templates/page/post.html.twig***
+   ```html
+   ...
+   <div>
+        {{ include('page/_comment-form.html.twig') }}
+        <hr>
+        
+        {% for comment in post.comments %}
+            <p>{{ comment.content }}</p>
+            <hr>
+        {% endfor %}
+    </div>
+   ```
+   
+4. Realizamos una redirección en el sistema para que ubique a los usuarios en el lugar correcto, tanto luego de que haga un login, como despues de un registro
+
+   ***/Secutiry/AppAutenticator.php***
+   ```php
+    public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
+    {
+        if ($targetPath = $this->getTargetPath($request->getSession(), $firewallName)) {
+            return new RedirectResponse($targetPath);
+        }
+        
+        return new RedirectResponse($this->urlGenerator->generate('app_home'));
+    }
+   ```
+   
