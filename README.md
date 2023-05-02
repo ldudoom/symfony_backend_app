@@ -1779,7 +1779,7 @@ public function configureFields(string $pageName): iterable
 Vamos ahora a quitar la funcionalidad de la creacion de usuarios desde el panel administrativo, esta funcion
 quedara activa unicamente desde el formulario de registro.
 
-***/src/COntroller/Admin/UserCrudController.php***
+***/src/Controller/Admin/UserCrudController.php***
 ```php
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
@@ -1805,7 +1805,7 @@ public function buildForm(FormBuilderInterface $builder, array $options): void
  }
 ```
 
-***/src/templates/registration/register.html.twig
+***/templates/registration/register.html.twig
 ```html
 {{ form_start(registrationForm) }}
      {{ form_row(registrationForm.name) }}
@@ -1813,3 +1813,518 @@ public function buildForm(FormBuilderInterface $builder, array $options): void
     ...
 ```
 
+
+## Web Publica
+***
+
+Ahora nos vamos a centrar en la configuración de nuestra Web Publica, ya tenemos el backend y nuestro panel administrativo, ahora
+vamos a dejar funcionando el frontend del sistema, es decir la parte pública, donde tendrán acceso los usuarios sin necesidad de
+estar logueado o registrado.
+
+Lo primero que vamos a hacer es generar el controlador para gestionar las pantallas de la web publica:
+
+```shell
+$ php bin/console make:controller Page
+
+ created: src/Controller/PageController.php
+ created: templates/page/index.html.twig
+
+           
+  Success! 
+           
+
+ Next: Open your new controller class and add some pages!
+
+```
+
+Ahora, dejamos al controlador Page con el siguiente codigo:
+
+***/src/Controller/PageController.php***
+```php
+#[Route('/', name: 'app_home')]
+ public function home(): Response
+ {
+     return $this->render('page/home.html.twig', [
+         'controller_name' => 'PageController',
+     ]);
+ }
+```
+
+Renombramos el archivo **index.html.twig** a **home.html.twig**
+
+```shell
+$ git mv templates/page/index.html.twig templates/page/home.html.twig
+```
+
+Lo siguiente será traer a esta vista la lista de publicaciones, y generar una ruta y una vista para ver el detalle de una publicacion,
+para esto, vamos a modificar el controlador de la siguiente manera:
+
+***/src/Controller/PageController.php***
+```php
+use App\Entity\Post;
+use App\Repository\PostRepository;
+
+#[Route('/', name: 'app_home')]
+public function home(PostRepository $postRepository): Response
+{
+  return $this->render('page/home.html.twig', [
+      'posts' => $postRepository->findLatest(),
+  ]);
+}
+
+#[Route('/blog/{slug}', name: 'app_post')]
+public function post(Post $post): Response
+{
+  return $this->render('page/post.html.twig', [
+      'post' => $post,
+  ]);
+}
+```
+
+Agregamos el metodo findLatest() en el repositorio de publicaciones
+
+***/src/Repository/PostRepository.php***
+```php
+public function findLatest(): array
+{
+    return $this->createQueryBuilder('post')
+              ->orderBy('post.id', 'DESC')
+              ->setMaxResults(22)
+              ->getQuery()
+              ->getResult();
+}
+```
+
+Imprimimos la lista de publicaciones en la vista **home.html.twig**
+
+***/templates/page/home.html.twig***
+```html
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello PageController!{% endblock %}
+
+{% block body %}
+    {% for post in posts %}
+        <h2>
+            <a href="{{ path('app_post', { slug: post.slug }) }}">
+                {{ post.title }}
+            </a>
+        </h2>
+        <p>
+            <strong>{{ post.category.name }}</strong>
+            -
+            {{ post.comments|length }} Comentarios
+        </p>
+        <hr>
+    {% endfor %}
+{% endblock %}
+```
+
+
+Creamos la vista que esta pendiente, post.html.twig
+
+***/templates/page/post.html.twig***
+```html
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ post.title }}!{% endblock %}
+
+{% block body %}
+    <h1>{{ post.title }}</h1>
+    {{ post.content }}
+    <p>
+        <strong>{{ post.category.name }}</strong>
+        -
+        {{ post.comments|length }} Comentarios
+    </p>
+{% endblock %}
+```
+
+
+## Estructura del formulario de comentarios
+***
+
+Ahora vamos a agregar un formulario para que los usuarios que visitan la web publica, puedan generar nuevos comentarios
+en cada una de las publicaciones.
+
+1. Vamos a agregar un nuevo archivo que será la vista del formulario de comentarios.
+   ```shell
+   $ touch templates/page/_comment-form.html.twig
+   ```
+   
+2. Colocamos el siguiente código en el archivo **_comment-form.html.twig**
+   
+   ***/templates/page/_comment-form.html.twig***
+   ```html
+   {% if app.user %}
+       <p>
+           Comentar como <strong>{{ app.user.name }}</strong>
+       </p>
+   {% else %}
+       <a href="{{ path('app_login') }}">Login</a>
+   {% endif %}
+   ```
+   
+3. Incluimos este archivo en el detalle de la publicación
+
+   ***/templates/page/post.html.twig***
+   ```html
+   ...
+   <div>
+        {{ include('page/_comment-form.html.twig') }}
+        <hr>
+        
+        {% for comment in post.comments %}
+            <p>{{ comment.content }}</p>
+            <hr>
+        {% endfor %}
+    </div>
+   ```
+   
+4. Realizamos una redirección en el sistema para que ubique a los usuarios en el lugar correcto, tanto luego de que haga un login, como despues de un registro
+
+   ***/Secutiry/AppAutenticator.php***
+   ```php
+    public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
+    {
+        if ($targetPath = $this->getTargetPath($request->getSession(), $firewallName)) {
+            return new RedirectResponse($targetPath);
+        }
+        
+        return new RedirectResponse($this->urlGenerator->generate('app_home'));
+    }
+   ```
+   
+5. Generamos el formulario para gestion de comentarios
+
+```shell
+$ php bin/console make:form
+
+ The name of the form class (e.g. BraveKangarooType):
+ > Comment
+
+ The name of Entity or fully qualified model class name that the new form will be bound to (empty for none):
+ > Comment
+Comment
+
+ created: src/Form/CommentType.php
+
+           
+  Success! 
+           
+
+ Next: Add fields to your form and start using it.
+ Find the documentation at https://symfony.com/doc/current/forms.html
+
+```
+
+6. Agregamos el formulario en la vista de comentarios
+
+   ***/templates/page/_comment-form.html.twig***
+   ```html
+   {% if app.user %}
+       <p>
+           Comentar como <strong>{{ app.user.name }}</strong>
+       </p>
+   
+       {{ form(form) }}
+   
+   {% else %}
+       <a href="{{ path('app_login') }}">Login</a>
+   {% endif %}
+   ```
+   
+7. Enviamos el formulario desde nuestro controlador
+
+***/src/Controller/PageController.php***
+```php
+use App\Form\CommentType;
+
+#[Route('/blog/{slug}', name: 'app_post')]
+public function post(Post $post): Response
+{
+     $form = $this->createForm(CommentType::class);
+     return $this->render('page/post.html.twig', [
+         'post' => $post,
+         'form' => $form->createView(),
+     ]);
+}
+```
+
+## Configuraci&oacute;n del formulario de comentarios
+***
+
+1. Vamos a proceder a configurar nuestro formulario de comentarios, y vamos a dejar el codigo del mismo, de la siguiente manera:
+
+   ***/src/Form/CommentType.php***
+   ```php
+   use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+   
+   public function buildForm(FormBuilderInterface $builder, array $options): void
+   {
+        $builder
+            ->add('content')
+            ->add('Enviar', SubmitType::class, [
+                'attr' => ['class' => 'btn-primary']
+            ])
+        ;
+   }
+   ```
+
+2. Generamos el metodo de guardar el comentario en el controlador
+
+***/src/Controller/PageController.php***
+```php
+#[Route('/add-comment/{slug}', name: 'app_comment_new')]
+ public function addComment(Request $request, Post $post, EntityManagerInterface $entityManager): Response
+ {
+     $comment = new Comment();
+     $comment->setUser($this->getUser()); // Toma al usuario que esta logueado
+     $comment->setPost($post);
+
+     $form = $this->createForm(CommentType::class, $comment);
+     $form->handleRequest($request);
+
+     if($form->isSubmitted() && $form->isValid()){
+         $entityManager->persist($comment);
+         $entityManager->flush();
+
+         return $this->redirectToRoute('app_post', ['slug' => $post->getSlug()]);
+     }
+
+     return $this->render('page/post.html.twig', [
+         'post' => $post,
+         'form' => $form->createView(),
+     ]);
+ }
+```
+
+3. Realizamos la configuración necesaria en la entidad, en este caso activamos la validación.
+
+***/src/Entity/Comment.php***
+```php
+use Symfony\Component\Validator\Constraints as Assert;
+
+
+#[ORM\Column(type: Types::TEXT)]
+#[Assert\NotBlank]
+private ?string $content = null;
+
+```
+
+4. Corregimos el action del formulario de comentarios en la vista
+
+   ***/templates/page/_comment.html.twig***
+   ```html
+   # Reemplazamos
+   
+   {{ form(form) }}
+   
+   # por
+   
+   {{ form(form, {'action': path('app_comment_new', {'slug': post.slug})}) }}
+   ```
+   
+5. Por último, vamos a ordenar los comentarios del mas nuevo al más antiguo, para eso colocamos lo siguiente en la entidad **Post.php**
+
+***/src/Entity/Post.php***
+```php
+#[ORM\OneToMany(mappedBy: 'post', targetEntity: Comment::class, orphanRemoval: true)]
+#[ORM\OrderBy(['id' => 'DESC'])]
+private Collection $comments;
+```
+
+## Dise&ntilde;o Web
+***
+
+Para personalizar nuestro dise&ntilde;o web, vamos a realizar lo siguiente:
+
+1. En primer lugar trabajamos en nuestra plantilla
+
+   ***/templates/base.html.twig***
+   ```html
+   <!DOCTYPE html>
+   <html>
+       <head>
+           <meta charset="UTF-8">
+           <title>{% block title %}Welcome!{% endblock %}</title>
+   
+           {% block stylesheets %}
+               {{ encore_entry_link_tags('app') }}
+           {% endblock %}
+   
+           {% block javascripts %}
+               {{ encore_entry_script_tags('app') }}
+           {% endblock %}
+       </head>
+       <body>
+           <p class="text-center mt-4">
+               {% if app.user %}
+                   <strong>{{ app.user.name }}</strong> |
+                   <a href="{{ path('app_logout') }}">Cerrar Sesi&oacute;n</a>
+               {% else %}
+                   <a href="{{ path('app_login') }}">Login</a>
+                   <a href="{{ path('app_register') }}">Registro</a>
+               {% endif %}
+           </p>
+           <div class="container my-4">
+               <div class="row p-4 rounded border shadow-lg">
+                   <div class="col-md-9">
+                       {% block body %}{% endblock %}
+                   </div>
+               </div>
+           </div>
+   
+       </body>
+   </html>
+   ```
+   
+2. Ahora vamos a trabajar en la vista del formulario de los comentarios
+
+***/templates/page/_comment-form.html.twig***
+```html
+<div class="bg-light p-4">
+    {% if app.user %}
+        <p>
+            Comentar como <strong>{{ app.user.name }}</strong>
+        </p>
+
+        {{ form(form, {'action': path('app_comment_new', {'slug': post.slug})}) }}
+
+    {% else %}
+        <a href="{{ path('app_login') }}">Login</a>
+    {% endif %}
+</div>
+```
+
+## Mejoras visuales
+***
+
+1. Mejoramos un poco el formulario de comentarios
+
+   ***/src/Form/CommentType.php***
+   ```php
+   use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+   
+   public function buildForm(FormBuilderInterface $builder, array $options): void
+   {
+        $builder
+            ->add('content', TextareaType::class, [
+                'label' => 'Comentario'
+            ])
+            ->add('Enviar', SubmitType::class, [
+                'attr' => ['class' => 'btn-primary']
+            ])
+        ;
+   }
+   ```
+
+2. Vamos a agregar el acceso al home en el menu
+
+   ***/templates/base.html.twig***
+   ```html
+   ...
+   <body>
+           <p class="text-center mt-4">
+               <a href="{{ path('app_home') }}">Home</a> | 
+               {% if app.user %}
+              ...
+           </p>
+   ...
+   ```
+
+3. Vamos ahora a optimizar las consultas que se generan en el home.
+
+   ***/src/Repository/PostRepository.php***
+   ```php
+   public function findLatest(): array
+   {
+        return $this->createQueryBuilder('post')
+                    ->addSelect('comments', 'category')
+                    ->leftJoin('post.comments', 'comments')
+                    ->leftJoin('post.category', 'category')
+                    ->orderBy('post.id', 'DESC')
+                    ->getQuery()
+                    ->getResult();
+   }
+   ```
+
+4. Ahora vamos a mejorar el listado de posts
+
+   ***/templates/page/home.html.twig***
+   ```html
+   {% extends 'base.html.twig' %}
+   
+   {% block title %}Hello PageController!{% endblock %}
+   
+   {% block body %}
+       {% for post in posts %}
+           <h2>
+               <a href="{{ path('app_post', { slug: post.slug }) }}" class="text-dark text-decoration-none">
+                   {{ post.title }}
+               </a>
+           </h2>
+           {% include('page/_info.html.twig') %}
+           <hr>
+       {% endfor %}
+   {% endblock %}
+   
+   ```
+
+5. Generamos el archivo **_info.html.twig**
+
+   ***/templates/page/_info.html.twig***
+   ```html
+   <p class="text-muted">
+       <strong>{{ post.category.name }}</strong>
+       |
+       {{ post.comments|length }} Comentarios
+   </p>
+   ```
+
+6. Modificamos el archivo **post.html.twig** importando el archivo **_info.html.twig** en lugar del codigo correspondiente
+
+   ***/templates/page/post.html.twig***
+   ```html
+   {% extends 'base.html.twig' %}
+   
+   {% block title %}{{ post.title }}!{% endblock %}
+   
+   {% block body %}
+       <h1>{{ post.title }}</h1>
+       {{ post.content }}
+   
+       {% include('page/_info.html.twig') %}
+   
+       <div>
+           {{ include('page/_comment-form.html.twig') }}
+           <hr>
+   
+           {% for comment in post.comments %}
+               <p>{{ comment.content }}</p>
+               <hr>
+           {% endfor %}
+       </div>
+   {% endblock %}
+   
+   ```
+   
+7. Por &uacute;ltimo, agregamos el nombre del usuario que realizo el comentario
+
+***/templates/page/post.html.twig***
+```html
+<div>
+   ...     
+   {{ include('page/_comment-form.html.twig') }}
+        <hr>
+
+        {% for comment in post.comments %}
+            <p>
+                <strong>{{ comment.user.name }}</strong> | 
+                {{ comment.content }}
+            </p>
+            <hr>
+        {% endfor %}
+    </div>
+    ...
+```

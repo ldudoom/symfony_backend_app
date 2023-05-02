@@ -1,0 +1,23 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ post.title }}!{% endblock %}
+
+{% block body %}
+    <h1>{{ post.title }}</h1>
+    {{ post.content }}
+
+    {% include('page/_info.html.twig') %}
+
+    <div>
+        {{ include('page/_comment-form.html.twig') }}
+        <hr>
+
+        {% for comment in post.comments %}
+            <p>
+                <strong>{{ comment.user.name }}</strong> |
+                {{ comment.content }}
+            </p>
+            <hr>
+        {% endfor %}
+    </div>
+{% endblock %}

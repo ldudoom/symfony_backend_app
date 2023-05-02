@@ -1,0 +1,15 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello PageController!{% endblock %}
+
+{% block body %}
+    {% for post in posts %}
+        <h2>
+            <a href="{{ path('app_post', { slug: post.slug }) }}" class="text-dark text-decoration-none">
+                {{ post.title }}
+            </a>
+        </h2>
+        {% include('page/_info.html.twig') %}
+        <hr>
+    {% endfor %}
+{% endblock %}
