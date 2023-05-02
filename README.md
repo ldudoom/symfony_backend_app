@@ -1779,7 +1779,7 @@ public function configureFields(string $pageName): iterable
 Vamos ahora a quitar la funcionalidad de la creacion de usuarios desde el panel administrativo, esta funcion
 quedara activa unicamente desde el formulario de registro.
 
-***/src/COntroller/Admin/UserCrudController.php***
+***/src/Controller/Admin/UserCrudController.php***
 ```php
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
@@ -1805,7 +1805,7 @@ public function buildForm(FormBuilderInterface $builder, array $options): void
  }
 ```
 
-***/src/templates/registration/register.html.twig
+***/templates/registration/register.html.twig
 ```html
 {{ form_start(registrationForm) }}
      {{ form_row(registrationForm.name) }}
@@ -1848,4 +1848,94 @@ Ahora, dejamos al controlador Page con el siguiente codigo:
          'controller_name' => 'PageController',
      ]);
  }
+```
+
+Renombramos el archivo **index.html.twig** a **home.html.twig**
+
+```shell
+$ git mv templates/page/index.html.twig templates/page/home.html.twig
+```
+
+Lo siguiente será traer a esta vista la lista de publicaciones, y generar una ruta y una vista para ver el detalle de una publicacion,
+para esto, vamos a modificar el controlador de la siguiente manera:
+
+***/src/Controller/PageController.php***
+```php
+use App\Entity\Post;
+use App\Repository\PostRepository;
+
+#[Route('/', name: 'app_home')]
+public function home(PostRepository $postRepository): Response
+{
+  return $this->render('page/home.html.twig', [
+      'posts' => $postRepository->findLatest(),
+  ]);
+}
+
+#[Route('/blog/{slug}', name: 'app_post')]
+public function post(Post $post): Response
+{
+  return $this->render('page/post.html.twig', [
+      'post' => $post,
+  ]);
+}
+```
+
+Agregamos el metodo findLatest() en el repositorio de publicaciones
+
+***/src/Repository/PostRepository.php***
+```php
+public function findLatest(): array
+{
+    return $this->createQueryBuilder('post')
+              ->orderBy('post.id', 'DESC')
+              ->setMaxResults(22)
+              ->getQuery()
+              ->getResult();
+}
+```
+
+Imprimimos la lista de publicaciones en la vista **home.html.twig**
+
+***/templates/page/home.html.twig***
+```html
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello PageController!{% endblock %}
+
+{% block body %}
+    {% for post in posts %}
+        <h2>
+            <a href="{{ path('app_post', { slug: post.slug }) }}">
+                {{ post.title }}
+            </a>
+        </h2>
+        <p>
+            <strong>{{ post.category.name }}</strong>
+            -
+            {{ post.comments|length }} Comentarios
+        </p>
+        <hr>
+    {% endfor %}
+{% endblock %}
+```
+
+
+Creamos la vista que esta pendiente, post.html.twig
+
+***/templates/page/post.html.twig***
+```html
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ post.title }}!{% endblock %}
+
+{% block body %}
+    <h1>{{ post.title }}</h1>
+    {{ post.content }}
+    <p>
+        <strong>{{ post.category.name }}</strong>
+        -
+        {{ post.comments|length }} Comentarios
+    </p>
+{% endblock %}
 ```

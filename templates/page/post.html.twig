@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ post.title }}!{% endblock %}
+
+{% block body %}
+    <h1>{{ post.title }}</h1>
+    {{ post.content }}
+    <p>
+        <strong>{{ post.category.name }}</strong>
+        -
+        {{ post.comments|length }} Comentarios
+    </p>
+{% endblock %}
