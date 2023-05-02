@@ -2051,3 +2051,86 @@ public function post(Post $post): Response
 }
 ```
 
+## Configuraci&oacute;n del formulario de comentarios
+***
+
+1. Vamos a proceder a configurar nuestro formulario de comentarios, y vamos a dejar el codigo del mismo, de la siguiente manera:
+
+   ***/src/Form/CommentType.php***
+   ```php
+   use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+   
+   public function buildForm(FormBuilderInterface $builder, array $options): void
+   {
+        $builder
+            ->add('content')
+            ->add('Enviar', SubmitType::class, [
+                'attr' => ['class' => 'btn-primary']
+            ])
+        ;
+   }
+   ```
+
+2. Generamos el metodo de guardar el comentario en el controlador
+
+***/src/Controller/PageController.php***
+```php
+#[Route('/add-comment/{slug}', name: 'app_comment_new')]
+ public function addComment(Request $request, Post $post, EntityManagerInterface $entityManager): Response
+ {
+     $comment = new Comment();
+     $comment->setUser($this->getUser()); // Toma al usuario que esta logueado
+     $comment->setPost($post);
+
+     $form = $this->createForm(CommentType::class, $comment);
+     $form->handleRequest($request);
+
+     if($form->isSubmitted() && $form->isValid()){
+         $entityManager->persist($comment);
+         $entityManager->flush();
+
+         return $this->redirectToRoute('app_post', ['slug' => $post->getSlug()]);
+     }
+
+     return $this->render('page/post.html.twig', [
+         'post' => $post,
+         'form' => $form->createView(),
+     ]);
+ }
+```
+
+3. Realizamos la configuración necesaria en la entidad, en este caso activamos la validación.
+
+***/src/Entity/Comment.php***
+```php
+use Symfony\Component\Validator\Constraints as Assert;
+
+
+#[ORM\Column(type: Types::TEXT)]
+#[Assert\NotBlank]
+private ?string $content = null;
+
+```
+
+4. Corregimos el action del formulario de comentarios en la vista
+
+   ***/templates/page/_comment.html.twig***
+   ```html
+   # Reemplazamos
+   
+   {{ form(form) }}
+   
+   # por
+   
+   {{ form(form, {'action': path('app_comment_new', {'slug': post.slug})}) }}
+   ```
+   
+5. Por último, vamos a ordenar los comentarios del mas nuevo al más antiguo, para eso colocamos lo siguiente en la entidad **Post.php**
+
+***/src/Entity/Post.php***
+```php
+#[ORM\OneToMany(mappedBy: 'post', targetEntity: Comment::class, orphanRemoval: true)]
+#[ORM\OrderBy(['id' => 'DESC'])]
+private Collection $comments;
+```
+
