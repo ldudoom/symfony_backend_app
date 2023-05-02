@@ -2328,7 +2328,3 @@ Para personalizar nuestro dise&ntilde;o web, vamos a realizar lo siguiente:
     </div>
     ...
 ```
-
-8. Por ultimo, optimizamos las consultas en el detalle del post.
-
-***/src/Repository/Post
