@@ -2196,3 +2196,139 @@ Para personalizar nuestro dise&ntilde;o web, vamos a realizar lo siguiente:
     {% endif %}
 </div>
 ```
+
+## Mejoras visuales
+***
+
+1. Mejoramos un poco el formulario de comentarios
+
+   ***/src/Form/CommentType.php***
+   ```php
+   use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+   
+   public function buildForm(FormBuilderInterface $builder, array $options): void
+   {
+        $builder
+            ->add('content', TextareaType::class, [
+                'label' => 'Comentario'
+            ])
+            ->add('Enviar', SubmitType::class, [
+                'attr' => ['class' => 'btn-primary']
+            ])
+        ;
+   }
+   ```
+
+2. Vamos a agregar el acceso al home en el menu
+
+   ***/templates/base.html.twig***
+   ```html
+   ...
+   <body>
+           <p class="text-center mt-4">
+               <a href="{{ path('app_home') }}">Home</a> | 
+               {% if app.user %}
+              ...
+           </p>
+   ...
+   ```
+
+3. Vamos ahora a optimizar las consultas que se generan en el home.
+
+   ***/src/Repository/PostRepository.php***
+   ```php
+   public function findLatest(): array
+   {
+        return $this->createQueryBuilder('post')
+                    ->addSelect('comments', 'category')
+                    ->leftJoin('post.comments', 'comments')
+                    ->leftJoin('post.category', 'category')
+                    ->orderBy('post.id', 'DESC')
+                    ->getQuery()
+                    ->getResult();
+   }
+   ```
+
+4. Ahora vamos a mejorar el listado de posts
+
+   ***/templates/page/home.html.twig***
+   ```html
+   {% extends 'base.html.twig' %}
+   
+   {% block title %}Hello PageController!{% endblock %}
+   
+   {% block body %}
+       {% for post in posts %}
+           <h2>
+               <a href="{{ path('app_post', { slug: post.slug }) }}" class="text-dark text-decoration-none">
+                   {{ post.title }}
+               </a>
+           </h2>
+           {% include('page/_info.html.twig') %}
+           <hr>
+       {% endfor %}
+   {% endblock %}
+   
+   ```
+
+5. Generamos el archivo **_info.html.twig**
+
+   ***/templates/page/_info.html.twig***
+   ```html
+   <p class="text-muted">
+       <strong>{{ post.category.name }}</strong>
+       |
+       {{ post.comments|length }} Comentarios
+   </p>
+   ```
+
+6. Modificamos el archivo **post.html.twig** importando el archivo **_info.html.twig** en lugar del codigo correspondiente
+
+   ***/templates/page/post.html.twig***
+   ```html
+   {% extends 'base.html.twig' %}
+   
+   {% block title %}{{ post.title }}!{% endblock %}
+   
+   {% block body %}
+       <h1>{{ post.title }}</h1>
+       {{ post.content }}
+   
+       {% include('page/_info.html.twig') %}
+   
+       <div>
+           {{ include('page/_comment-form.html.twig') }}
+           <hr>
+   
+           {% for comment in post.comments %}
+               <p>{{ comment.content }}</p>
+               <hr>
+           {% endfor %}
+       </div>
+   {% endblock %}
+   
+   ```
+   
+7. Por &uacute;ltimo, agregamos el nombre del usuario que realizo el comentario
+
+***/templates/page/post.html.twig***
+```html
+<div>
+   ...     
+   {{ include('page/_comment-form.html.twig') }}
+        <hr>
+
+        {% for comment in post.comments %}
+            <p>
+                <strong>{{ comment.user.name }}</strong> | 
+                {{ comment.content }}
+            </p>
+            <hr>
+        {% endfor %}
+    </div>
+    ...
+```
+
+8. Por ultimo, optimizamos las consultas en el detalle del post.
+
+***/src/Repository/Post
