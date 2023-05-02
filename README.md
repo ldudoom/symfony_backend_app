@@ -1813,3 +1813,39 @@ public function buildForm(FormBuilderInterface $builder, array $options): void
     ...
 ```
 
+
+## Web Publica
+***
+
+Ahora nos vamos a centrar en la configuración de nuestra Web Publica, ya tenemos el backend y nuestro panel administrativo, ahora
+vamos a dejar funcionando el frontend del sistema, es decir la parte pública, donde tendrán acceso los usuarios sin necesidad de
+estar logueado o registrado.
+
+Lo primero que vamos a hacer es generar el controlador para gestionar las pantallas de la web publica:
+
+```shell
+$ php bin/console make:controller Page
+
+ created: src/Controller/PageController.php
+ created: templates/page/index.html.twig
+
+           
+  Success! 
+           
+
+ Next: Open your new controller class and add some pages!
+
+```
+
+Ahora, dejamos al controlador Page con el siguiente codigo:
+
+***/src/Controller/PageController.php***
+```php
+#[Route('/', name: 'app_home')]
+ public function home(): Response
+ {
+     return $this->render('page/home.html.twig', [
+         'controller_name' => 'PageController',
+     ]);
+ }
+```
