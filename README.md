@@ -1995,3 +1995,59 @@ en cada una de las publicaciones.
     }
    ```
    
+5. Generamos el formulario para gestion de comentarios
+
+```shell
+$ php bin/console make:form
+
+ The name of the form class (e.g. BraveKangarooType):
+ > Comment
+
+ The name of Entity or fully qualified model class name that the new form will be bound to (empty for none):
+ > Comment
+Comment
+
+ created: src/Form/CommentType.php
+
+           
+  Success! 
+           
+
+ Next: Add fields to your form and start using it.
+ Find the documentation at https://symfony.com/doc/current/forms.html
+
+```
+
+6. Agregamos el formulario en la vista de comentarios
+
+   ***/templates/page/_comment-form.html.twig***
+   ```html
+   {% if app.user %}
+       <p>
+           Comentar como <strong>{{ app.user.name }}</strong>
+       </p>
+   
+       {{ form(form) }}
+   
+   {% else %}
+       <a href="{{ path('app_login') }}">Login</a>
+   {% endif %}
+   ```
+   
+7. Enviamos el formulario desde nuestro controlador
+
+***/src/Controller/PageController.php***
+```php
+use App\Form\CommentType;
+
+#[Route('/blog/{slug}', name: 'app_post')]
+public function post(Post $post): Response
+{
+     $form = $this->createForm(CommentType::class);
+     return $this->render('page/post.html.twig', [
+         'post' => $post,
+         'form' => $form->createView(),
+     ]);
+}
+```
+

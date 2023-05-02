@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Post;
+use App\Form\CommentType;
 use App\Repository\PostRepository;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -22,8 +23,10 @@ class PageController extends AbstractController
     #[Route('/blog/{slug}', name: 'app_post')]
     public function post(Post $post): Response
     {
+        $form = $this->createForm(CommentType::class);
         return $this->render('page/post.html.twig', [
             'post' => $post,
+            'form' => $form->createView(),
         ]);
     }
 }
