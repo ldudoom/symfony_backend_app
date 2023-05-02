@@ -1709,3 +1709,107 @@ Y volvemos a ejecutar el comando que genera nuestra fake data
 ```shell
 $ php bin/conaole doctrine:fixtures:load
 ```
+
+## Actualizaci&oacute;n del Panel Administrativo
+***
+
+Vamos a comenzar por modificar el modulo de comentarios, de tal manera que al momento de generar un nuevo 
+comentario, me permita seleccionar cual es el usuario al que le pertenece.
+
+***/src/Controller/Admin/CommentCrudController.php***
+```php
+public function configureFields(string $pageName): iterable
+ {
+     return [
+         ...
+         AssociationField::new('user', 'User'),
+         ...
+     ];
+ }
+```
+
+Ahora hacemos lo mismo para el modulo de publicaciones 
+
+***/src/Controller/Admin/PostCrudController.php***
+```php
+public function configureFields(string $pageName): iterable
+ {
+     return [
+         ...
+         AssociationField::new('user', 'User'),
+         ...
+     ];
+ }
+```
+
+Agregamos el metodo __toString() en la entidad User.
+
+***/src/Entity/User.php***
+```php
+public function __toString(): string
+ {
+     return (string) $this->getName();
+ }
+```
+
+Vamos a agregar la propiedad nombre del usuario en el controlador.
+
+***/src/Controller/Admin/UserCrudController.php***
+```php
+use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
+
+public function configureCrud(Crud $crud): Crud
+ {
+     return $crud
+         ...
+         ->setSearchFields(['name', 'email'])
+         ...
+ }
+
+public function configureFields(string $pageName): iterable
+ {
+     return [
+         ...
+         TextField::new('name', 'Nombre'),
+         ...
+     ];
+ }
+```
+
+Vamos ahora a quitar la funcionalidad de la creacion de usuarios desde el panel administrativo, esta funcion
+quedara activa unicamente desde el formulario de registro.
+
+***/src/COntroller/Admin/UserCrudController.php***
+```php
+use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
+...
+
+public function configureActions(Actions $actions): Actions
+ {
+     return parent::configureActions($actions)->disable(Action::NEW);
+ }
+```
+
+Ahora vamos a agregar el campo de nombre en el formulario de registro
+
+***/src/Form/RegistrationFormType.php***
+```php
+public function buildForm(FormBuilderInterface $builder, array $options): void
+ {
+     $builder
+         ->add('name')
+         ->add('email')
+        ...
+ }
+```
+
+***/src/templates/registration/register.html.twig
+```html
+{{ form_start(registrationForm) }}
+     {{ form_row(registrationForm.name) }}
+     {{ form_row(registrationForm.email) }}
+    ...
+```
+
