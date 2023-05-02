@@ -2134,3 +2134,65 @@ private ?string $content = null;
 private Collection $comments;
 ```
 
+## Dise&ntilde;o Web
+***
+
+Para personalizar nuestro dise&ntilde;o web, vamos a realizar lo siguiente:
+
+1. En primer lugar trabajamos en nuestra plantilla
+
+   ***/templates/base.html.twig***
+   ```html
+   <!DOCTYPE html>
+   <html>
+       <head>
+           <meta charset="UTF-8">
+           <title>{% block title %}Welcome!{% endblock %}</title>
+   
+           {% block stylesheets %}
+               {{ encore_entry_link_tags('app') }}
+           {% endblock %}
+   
+           {% block javascripts %}
+               {{ encore_entry_script_tags('app') }}
+           {% endblock %}
+       </head>
+       <body>
+           <p class="text-center mt-4">
+               {% if app.user %}
+                   <strong>{{ app.user.name }}</strong> |
+                   <a href="{{ path('app_logout') }}">Cerrar Sesi&oacute;n</a>
+               {% else %}
+                   <a href="{{ path('app_login') }}">Login</a>
+                   <a href="{{ path('app_register') }}">Registro</a>
+               {% endif %}
+           </p>
+           <div class="container my-4">
+               <div class="row p-4 rounded border shadow-lg">
+                   <div class="col-md-9">
+                       {% block body %}{% endblock %}
+                   </div>
+               </div>
+           </div>
+   
+       </body>
+   </html>
+   ```
+   
+2. Ahora vamos a trabajar en la vista del formulario de los comentarios
+
+***/templates/page/_comment-form.html.twig***
+```html
+<div class="bg-light p-4">
+    {% if app.user %}
+        <p>
+            Comentar como <strong>{{ app.user.name }}</strong>
+        </p>
+
+        {{ form(form, {'action': path('app_comment_new', {'slug': post.slug})}) }}
+
+    {% else %}
+        <a href="{{ path('app_login') }}">Login</a>
+    {% endif %}
+</div>
+```
