@@ -1114,3 +1114,702 @@ Vamos a empezar con el campo slug de nuestra entidad **Category.php**
    ```shell
    $ php bin/console doctrine:migrations:migrate
    ```
+   
+
+## Estructura de Usuarios
+***
+
+1. Para generar la entidad de usuarios, ejecutamos el siguiente comando:
+
+   ```shell
+   $ php bin/console make:user
+   ```
+
+2. LLenamos el asistente de la siguiente manera:
+
+   ```shell
+    The name of the security user class (e.g. User) [User]:
+    > User
+   
+    Do you want to store user data in the database (via Doctrine)? (yes/no) [yes]:
+    > yes
+   
+    Enter a property name that will be the unique "display" name for the user (e.g. email, username, uuid) [email]:
+    > email
+   
+    Will this app need to hash/check user passwords? Choose No if passwords are not needed or will be checked/hashed by some other system (e.g. a single sign-on server).
+   
+    Does this app need to hash/check user passwords? (yes/no) [yes]:
+    > yes
+   
+    created: src/Entity/User.php
+    created: src/Repository/UserRepository.php
+    updated: src/Entity/User.php
+    updated: config/packages/security.yaml
+   
+              
+     Success! 
+              
+   
+    Next Steps:
+      - Review your new App\Entity\User class.
+      - Use make:entity to add more fields to your User entity and then run make:migration.
+      - Create a way to authenticate! See https://symfony.com/doc/current/security.html
+   
+   ```
+   
+3. Generamos el archivo de migracion
+
+   ```shell
+   $ php bin/console make:migration
+   ```
+   
+4. Ejecutamos la migración antes generada
+
+   ```shell
+   $ php bin/console doctrine:migrations:migrate
+   ```
+   
+## Registro e inicio de sesion
+***
+
+Vamos ahora a habilitar el formulario de login y de registro, y vamos a proteger nuestro panel de administración 
+para que no pueda acceder ningun usuario a menos de que realice el proceso de login.
+
+1. Ejecutamos el comando que nos ayuda a habilitar el formulario de login:
+
+   ```shell
+   $ php bin/console make:auth
+   ```
+
+2. Llenamos el asistente con la siguiente información
+
+   ```shell
+    What style of authentication do you want? [Empty authenticator]:
+     [0] Empty authenticator
+     [1] Login form authenticator
+    > 1
+   1
+   
+    The class name of the authenticator to create (e.g. AppCustomAuthenticator):
+    > AppAuthenticator
+   
+    Choose a name for the controller class (e.g. SecurityController) [SecurityController]:
+    > 
+   
+    Do you want to generate a '/logout' URL? (yes/no) [yes]:
+    > yes
+   
+    created: src/Security/AppAuthenticator.php
+    updated: config/packages/security.yaml
+    created: src/Controller/SecurityController.php
+    created: templates/security/login.html.twig
+   
+              
+     Success! 
+              
+   
+    Next:
+    - Customize your new authenticator.
+    - Finish the redirect "TODO" in the App\Security\AppAuthenticator::onAuthenticationSuccess() method.
+    - Review & adapt the login template: templates/security/login.html.twig.
+   
+   ```
+   
+
+3. Ahora vamos a generar el formulario de registro de usuarios
+
+   ```shell
+   $ php bin/console make:registration-form
+   ```
+   > **NOTA:** En caso de requerirlo, instalar el componente de anotaciones ejecutando: `composer require doctrine/annotations`
+
+4. Llenamos el asistente de la siguiente manera
+
+   ```shell
+   Creating a registration form for App\Entity\User
+   
+    Do you want to add a @UniqueEntity validation annotation on your User class to make sure duplicate accounts aren't created? (yes/no) [yes]:
+    > yes
+   
+    Do you want to send an email to verify the user's email address after registration? (yes/no) [yes]:
+    > no
+   
+    Do you want to automatically authenticate the user after registration? (yes/no) [yes]:
+    > yes
+   
+    updated: src/Entity/User.php
+    created: src/Form/RegistrationFormType.php
+    created: src/Controller/RegistrationController.php
+    created: templates/registration/register.html.twig
+   
+              
+     Success! 
+              
+   
+    Next:
+    Make any changes you need to the form, controller & template.
+   
+    Then open your browser, go to "/register" and enjoy your new form!
+   
+   ```
+   
+
+Una vez que tenemos instalados nuestros formularios de login y registro, vamos a proteger nuestro panel administrativo
+
+Para eso simplemente vamos al archivo de configuración de seguridad, y descomentamos la linea que bloquea el acceso a 
+usuarios no autorizados:
+
+***/config/packages/security.yaml***
+```yaml
+security:
+   access_control:
+      - { path: ^/admin, roles: ROLE_ADMIN }
+```
+
+Este momento, si intentamos registrarnos y acceder al panel admin, vamos a tener un error, de acceso de negado, esto se da debido a que 
+tenemos en la base de datos creado el usuario luego del registro, pero este usuario aun no tiene asignado ningun rol, de momento solo 
+editamos el registro de usuario en la BBDD agregandole el rol ROLE_ADMIN:
+
+```
+["ROLE_ADMIN"]
+```
+
+
+## CRUD de Usuarios
+***
+
+Vamos a replicar configuraciones anteriores, especificamente de CRUD para generarl el de usuarios.
+
+1. Ejecutamos el comando que inicia la configuracion del CRUD de usuarios:
+
+   ```shell
+   $ php bin/console make:admin:crud
+   ```
+
+2. Llenamos el asistente con la siguiente informacion:
+
+   ```shell
+    Which Doctrine entity are you going to manage with this CRUD controller?:
+     [0] App\Entity\Category
+     [1] App\Entity\Comment
+     [2] App\Entity\Post
+     [3] App\Entity\User
+    > 3
+   3
+   
+    Which directory do you want to generate the CRUD controller in? [src/Controller/Admin/]:
+    > 
+   
+    Namespace of the generated CRUD controller [App\Controller\Admin]:
+    > 
+   
+                                                                                                                           
+    [OK] Your CRUD controller class has been successfully generated.                                                       
+                                                                                                                           
+   
+    Next steps:
+    * Configure your controller at "src/Controller/Admin/UserCrudController.php"
+    * Read EasyAdmin docs: https://symfony.com/doc/master/bundles/EasyAdminBundle/index.html
+   
+   ```
+   
+3. Agregamos el acceso a este nuevo CRUD en nuestro panel, agregando el siguiente codigo en **DashboardController.php**
+
+   ***/src/Controller/Admin/DashboardController.php***
+   ```php
+   use App\Entity\User;
+   
+   public function configureMenuItems(): iterable
+   {
+        ...
+        yield MenuItem::linkToCrud('Users', 'fa fa-user', User::class);
+        ...
+   }
+   ```
+
+4. Personalizamos la lista de usuarios y los formularios, realizando la siguiente configuracion en el controlador
+
+***/src/Controller/Admin/UserCrudController.php***
+```php
+namespace App\Controller\Admin;
+
+use App\Entity\User;
+
+use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
+use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\EmailField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
+
+
+use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
+
+class UserCrudController extends AbstractCrudController
+{
+    public static function getEntityFqcn(): string
+    {
+        return User::class;
+    }
+
+    public function configureCrud(Crud $crud): Crud
+    {
+        return $crud
+            ->setEntityLabelInSingular('Usuario')
+            ->setEntityLabelInPlural('Usuarios')
+            ->setSearchFields(['email'])
+            ->setDefaultSort(['id' => 'DESC']);
+    }
+
+
+    public function configureFields(string $pageName): iterable
+    {
+        return [
+            IdField::new('id')->onlyOnIndex(),
+            EmailField::new('email'),
+            ChoiceField::new('roles')->setChoices([
+                'Administrador' => 'ROLE_ADMIN',
+                'Usuario' => 'ROLE_USER',
+            ])->allowMultipleChoices(),
+        ];
+    }
+}
+
+```
+
+
+## Relaciones de tablas con los Usuarios
+***
+
+Ahora vamos a modificar el modulo de usuarios, para eso seguimos los siguientes pasos:
+
+1. Modificamos la entidad User de la siguiente manera
+
+   ```shell
+   $ php bin/console make:entity
+   
+   Class name of the entity to create or update (e.g. OrangeChef):
+    > User
+   User
+   
+    Your entity already exists! So let's add some new fields!
+   
+    New property name (press <return> to stop adding fields):
+    > name
+   
+    Field type (enter ? to see all types) [string]:
+    > 
+   
+   
+    Field length [255]:
+    > 128
+   
+    Can this field be null in the database (nullable) (yes/no) [no]:
+    > 
+   
+    updated: src/Entity/User.php
+   
+    Add another property? Enter the property name (or press <return> to stop adding fields):
+    > posts
+   
+    Field type (enter ? to see all types) [string]:
+    > relation
+   relation
+   
+    What class should this entity be related to?:
+    > Post
+   Post
+   
+   What type of relationship is this?
+    ------------ ----------------------------------------------------------------- 
+     Type         Description                                                      
+    ------------ ----------------------------------------------------------------- 
+     ManyToOne    Each User relates to (has) one Post.                             
+                  Each Post can relate to (can have) many User objects.            
+                                                                                   
+     OneToMany    Each User can relate to (can have) many Post objects.            
+                  Each Post relates to (has) one User.                             
+   
+     ManyToMany   Each User can relate to (can have) many Post objects.            
+                  Each Post can also relate to (can also have) many User objects.
+   
+     OneToOne     Each User relates to (has) exactly one Post.
+                  Each Post also relates to (has) exactly one User.
+    ------------ -----------------------------------------------------------------
+   
+    Relation type? [ManyToOne, OneToMany, ManyToMany, OneToOne]:
+    > OneToMany
+   OneToMany
+   
+    A new property will also be added to the Post class so that you can access and set the related User object from it.
+   
+    New field name inside Post [user]:
+    >
+   
+    Is the Post.user property allowed to be null (nullable)? (yes/no) [yes]:
+    > no
+   
+    Do you want to activate orphanRemoval on your relationship?
+    A Post is "orphaned" when it is removed from its related User.
+    e.g. $user->removePost($post)
+   
+    NOTE: If a Post may *change* from one User to another, answer "no".
+   
+    Do you want to automatically delete orphaned App\Entity\Post objects (orphanRemoval)? (yes/no) [no]:
+    > yes
+   
+    updated: src/Entity/User.php
+    updated: src/Entity/Post.php
+    
+   Add another property? Enter the property name (or press <return> to stop adding fields):
+    > comments
+   
+    Field type (enter ? to see all types) [string]:
+    > relation
+   relation
+   
+    What class should this entity be related to?:
+    > Comment
+   Comment
+   
+   What type of relationship is this?
+    ------------ --------------------------------------------------------------------
+     Type         Description
+    ------------ --------------------------------------------------------------------
+     ManyToOne    Each User relates to (has) one Comment.
+                  Each Comment can relate to (can have) many User objects.
+   
+     OneToMany    Each User can relate to (can have) many Comment objects.
+                  Each Comment relates to (has) one User.
+   
+     ManyToMany   Each User can relate to (can have) many Comment objects.
+                  Each Comment can also relate to (can also have) many User objects.
+   
+     OneToOne     Each User relates to (has) exactly one Comment.
+                  Each Comment also relates to (has) exactly one User.
+    ------------ --------------------------------------------------------------------
+   
+    Relation type? [ManyToOne, OneToMany, ManyToMany, OneToOne]:
+    > OneToMany
+   OneToMany
+   
+    A new property will also be added to the Comment class so that you can access and set the related User object from it.
+   
+    New field name inside Comment [user]:
+    >
+   
+    Is the Comment.user property allowed to be null (nullable)? (yes/no) [yes]:
+    > no
+   
+    Do you want to activate orphanRemoval on your relationship?
+    A Comment is "orphaned" when it is removed from its related User.
+    e.g. $user->removeComment($comment)
+   
+    NOTE: If a Comment may *change* from one User to another, answer "no".
+   
+    Do you want to automatically delete orphaned App\Entity\Comment objects (orphanRemoval)? (yes/no) [no]:
+    > yes
+   
+    updated: src/Entity/User.php
+    updated: src/Entity/Comment.php
+   
+    Add another property? Enter the property name (or press <return> to stop adding fields):
+    >
+   
+   
+              
+     Success! 
+              
+   
+    Next: When you're ready, create a migration with php bin/console make:migration
+   
+   ```
+
+2. Generamos la migracion de los cambios que acabamos de hacer
+
+   ```shell
+   $ php bin/console make:migration
+   ```
+
+3. Ahora debemos borrar todas las tablas antes de ejecutar esta migracion, ya que el cambio que vamos a hacer tiene restricciones de integridad referencial
+
+   ```shell
+   $ php bin/console doctrine:database:drop --force 
+   ```
+4. Ahora generamos nuevamente la BBDD
+
+   ```shell
+   $ php bin/console doctrine:database:create
+   ```
+
+5. Ahora si, ejecutamos la migracion para que los cambios queden hechos en nuestra BBDD
+
+   ```shell
+   $ php bin/console doctrine:migrations:migrate
+   ```
+
+6. Ahora vamos a crear el Factory de nuestros usuarios
+
+   ```shell
+   $ php bin/console make:Factory
+   
+   // Note: pass --test if you want to generate factories in your tests/ directory
+   
+    // Note: pass --all-fields if you want to generate default values for all fields, not only required fields
+   
+    Entity, Document or class to create a factory for:
+     [0] App\Entity\User
+     [1] All
+    > 0
+   0
+   
+    created: src/Factory/UserFactory.php
+   
+              
+     Success! 
+              
+   
+    Next: Open your new factory and set default values/states.
+    Find the documentation at https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#model-factories
+   
+   ```
+
+7. Ahora modificamos la configuracion de los datos semilla en el archivo **AppFisctures.php**
+
+   ***/src/DataFixtures/AppFixtures.php***
+   ```php
+   use App\Factory\UserFactory;
+   
+   public function load(ObjectManager $manager): void
+    {
+        CategoryFactory::createMany(8);
+        UserFactory::createMany(8);
+   
+        PostFactory::createMany(40, function() {
+            return [
+                'comments' => CommentFactory::new()->many(0,10),
+                'category' => CategoryFactory::random(),
+                'user' => UserFactory::random(),
+            ];
+        });
+    }
+   ```
+
+8. Ahora modificamos el Factory de comentarios
+
+   ***/src/Factory/CommentFactory.php***
+   ```php
+   protected function getDefaults(): array
+    {
+        return [
+            'content' => self::faker()->text(),
+            'user' => UserFactory::random(),
+        ];
+    }
+   ```
+
+9. Ahora vamos a modificar el Factory de usuarios
+
+   ***/src/Factory/UserFactory.php***
+   ```php
+   protected function getDefaults(): array
+    {
+        return [
+            'email' => self::faker()->email(),
+            'roles' => ['ROLE_USER'],
+            'password' => '123456789',
+            'name' => self::faker()->name(),
+        ];
+    }
+   ```
+   
+10. Ahora hacemos la carga de los datos falsos en nuestra BBDD
+
+```shell
+$ php bin/console doctrine:fixtures:load
+
+ Careful, database "symfony_backend" will be purged. Do you want to continue? (yes/no) [no]:
+ > yes
+
+   > purging database
+   > loading App\DataFixtures\AppFixtures
+
+```
+
+
+## Encriptar contraseñas en datos semilla
+***
+
+Nuestra tabla de usuarios se esta poblando con usuarios pero tenemos el inconveniente de que las claves de 
+acceso se estan guardando sin encriptar, esto por su puesto es un problema de seguridad, asi que vamos a 
+corregirlo.
+
+Para esto vamos a modificar el archivo **UserFactory.php** con el siguiente c&oacute;digo
+
+***/src/Factory/UserFactory.php***
+```php
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+
+final class UserFactory extends ModelFactory
+{
+
+    private UserPasswordHasherInterface $userPasswordHasher;
+    
+    public function __construct(UserPasswordHasherInterface $userPasswordHasher)
+    {
+        parent::__construct();
+        $this->userPasswordHasher = $userPasswordHasher;
+    }
+    
+    protected function initialize(): self
+    {
+        return $this
+            ->afterInstantiate(function(User $user): void {
+                $user->setPassword(
+                    $this->userPasswordHasher->hashPassword($user, $user->getPassword())
+                );
+            })
+        ;
+    }
+    
+    ...
+}
+```
+
+Con esta configuración, podemos ejecutar nuevamente el comando para generar fake data en nuestro systema y ya tenemos 
+los usuarios con passwords encriptados:
+
+```shell
+$ php bin/conaole doctrine:fixtures:load
+```
+
+Vamos a hacer un pequeño cambios en la configuracion de generacion de datos semilla para poder tener usuarios
+Administradores tambien, este cambio lo hacemos en **AppFixtures.php**
+
+***/src/DataFixtures/AppFixtures.php***
+```php
+public function load(ObjectManager $manager): void
+{
+        UserFactory::createOne([
+            'name' => 'Admin',
+            'email' => 'admin@myapp.com',
+            'roles' => ['ROLE_ADMIN'],
+        ]);
+
+        UserFactory::createOne([
+            'name' => 'User',
+            'email' => 'user@myapp.com',
+        ]);
+        ...
+}
+```
+
+Y volvemos a ejecutar el comando que genera nuestra fake data
+
+```shell
+$ php bin/conaole doctrine:fixtures:load
+```
+
+## Actualizaci&oacute;n del Panel Administrativo
+***
+
+Vamos a comenzar por modificar el modulo de comentarios, de tal manera que al momento de generar un nuevo 
+comentario, me permita seleccionar cual es el usuario al que le pertenece.
+
+***/src/Controller/Admin/CommentCrudController.php***
+```php
+public function configureFields(string $pageName): iterable
+ {
+     return [
+         ...
+         AssociationField::new('user', 'User'),
+         ...
+     ];
+ }
+```
+
+Ahora hacemos lo mismo para el modulo de publicaciones 
+
+***/src/Controller/Admin/PostCrudController.php***
+```php
+public function configureFields(string $pageName): iterable
+ {
+     return [
+         ...
+         AssociationField::new('user', 'User'),
+         ...
+     ];
+ }
+```
+
+Agregamos el metodo __toString() en la entidad User.
+
+***/src/Entity/User.php***
+```php
+public function __toString(): string
+ {
+     return (string) $this->getName();
+ }
+```
+
+Vamos a agregar la propiedad nombre del usuario en el controlador.
+
+***/src/Controller/Admin/UserCrudController.php***
+```php
+use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
+
+public function configureCrud(Crud $crud): Crud
+ {
+     return $crud
+         ...
+         ->setSearchFields(['name', 'email'])
+         ...
+ }
+
+public function configureFields(string $pageName): iterable
+ {
+     return [
+         ...
+         TextField::new('name', 'Nombre'),
+         ...
+     ];
+ }
+```
+
+Vamos ahora a quitar la funcionalidad de la creacion de usuarios desde el panel administrativo, esta funcion
+quedara activa unicamente desde el formulario de registro.
+
+***/src/COntroller/Admin/UserCrudController.php***
+```php
+use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
+...
+
+public function configureActions(Actions $actions): Actions
+ {
+     return parent::configureActions($actions)->disable(Action::NEW);
+ }
+```
+
+Ahora vamos a agregar el campo de nombre en el formulario de registro
+
+***/src/Form/RegistrationFormType.php***
+```php
+public function buildForm(FormBuilderInterface $builder, array $options): void
+ {
+     $builder
+         ->add('name')
+         ->add('email')
+        ...
+ }
+```
+
+***/src/templates/registration/register.html.twig
+```html
+{{ form_start(registrationForm) }}
+     {{ form_row(registrationForm.name) }}
+     {{ form_row(registrationForm.email) }}
+    ...
+```
+

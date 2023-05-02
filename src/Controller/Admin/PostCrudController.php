@@ -33,6 +33,7 @@ class PostCrudController extends AbstractCrudController
         return [
             IdField::new('id')->onlyOnIndex(),
             AssociationField::new('category', 'Category'),
+            AssociationField::new('user', 'User'),
             TextField::new('title'),
             SlugField::new('slug')->setTargetFieldName('title'),
             TextEditorField::new('content')->hideOnIndex(),
